@@ -1,0 +1,39 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+		xmlns:landing="clr-namespace:Ignition.Views.LandingWindow"
+		xmlns:login="clr-namespace:Ignition.Views.Login"
+        x:Class="Ignition.Views.PrimaryWindow"
+        Title="PrimaryWindow"
+		Width="1000"
+		Height="600"
+		xmlns:vm="clr-namespace:Ignition.ViewModels.LandingWindow;assembly=Ignition">
+
+	<Window.Background>
+		<ImageBrush Source="/Assets/bg2.png" Stretch="UniformToFill"/>
+	</Window.Background>
+
+	<Window.Styles>
+		<Style Selector="Button.LinkButton">
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="Padding" Value="0"/>
+		</Style>
+		<Style Selector="Button:pointerover">
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="Cursor" Value="Hand"/>
+		</Style>
+		<Style Selector="Button.LinkButton:pressed /template/ ContentPresenter">
+			<Setter Property="Background" Value="Transparent"/>
+		</Style>
+	</Window.Styles>
+
+	<Panel Name="TopLevelPanel">
+		<login:LoginWindow></login:LoginWindow>
+		<landing:LandingWindow Name="LandingWindow" Opacity="0">
+		</landing:LandingWindow>
+	</Panel>
+
+</Window>

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/StyleCop.Analyzers/Settings/stylecop.schema.json",
+  "settings": {
+    "documentationRules": {
+      "companyName": "The Freelancer Aftermath Team",
+      "copyrightText": "The following content is the property of {companyName} and may not be used or copied in any shape or form without the consent of {companyName}. {companyName} declines any liability for any damage resulting from unauthorized use of this content."
+    }
+  }
+}

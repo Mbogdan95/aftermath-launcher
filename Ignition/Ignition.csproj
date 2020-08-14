@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>netcoreapp3.1</TargetFramework>
+	</PropertyGroup>
+	<ItemGroup>
+		<Folder Include="Controls\" />
+		<Folder Include="Models\" />
+		<AvaloniaResource Include="Assets\**" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Avalonia" Version="0.9.11" />
+		<PackageReference Include="Avalonia.Desktop" Version="0.9.11" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="0.9.11" />
+	</ItemGroup>
+	<ItemGroup>
+		<Compile Update="Views\LandingWindow\LandingWindow.axaml.cs">
+			<DependentUpon>LandingWindow.axaml</DependentUpon>
+		</Compile>
+		<Compile Update="Views\LandingWindow\ProfileView.axaml.cs">
+			<DependentUpon>ProfileView.axaml</DependentUpon>
+		</Compile>
+	</ItemGroup>
+	<PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
+		<DefineConstants>_WINDOWS</DefineConstants>
+	</PropertyGroup>
+</Project>
