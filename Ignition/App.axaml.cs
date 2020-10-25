@@ -1,13 +1,6 @@
-﻿using System;
-using System.Threading;
-using Avalonia.Animation;
-using Avalonia.Animation.Easings;
-using Avalonia.Threading;
-
-namespace Ignition
+﻿namespace Ignition
 {
     using Avalonia;
-    using Avalonia.Controls;
     using Avalonia.Controls.ApplicationLifetimes;
     using Avalonia.Markup.Xaml;
     using Ignition.Views;
@@ -25,13 +18,12 @@ namespace Ignition
             {
                 desktop.MainWindow = new PrimaryWindow();
             }
+            else if (ApplicationLifetime is ISingleViewApplicationLifetime singleView)
+            {
+                singleView.MainView = new PrimaryWindow();
+            }
 
             base.OnFrameworkInitializationCompleted();
-        }
-
-        internal static void TriggerShake(Control control)
-        {
-            
         }
     }
 }

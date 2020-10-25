@@ -1,16 +1,15 @@
-﻿namespace Ignition.Views.LandingWindow
+﻿namespace Ignition.Views
 {
-    using Avalonia;
     using Avalonia.Controls;
     using Avalonia.Markup.Xaml;
-    using Ignition.ViewModels.LandingWindow;
+    using Ignition.ViewModels;
 
     public class ProfileView : UserControl
     {
         public ProfileView()
         {
-            this.InitializeComponent();
-            this.DataContext = new ProfileViewModel();
+            InitializeComponent();
+            DataContext = new ProfileViewModel();
         }
 
         private void InitializeComponent()

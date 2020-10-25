@@ -1,0 +1,170 @@
+﻿<Achievements
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:converter="clr-namespace:Ignition.Converter"
+  xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+  xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+  xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
+  x:Class="Ignition.Views.AchievementsView">
+
+  <Panel Width="900" Height="500">
+    <Panel.Background>
+      <SolidColorBrush Color="Black" Opacity="0.1"></SolidColorBrush>
+    </Panel.Background>
+    <Border BorderThickness="1" CornerRadius="1" >
+      <Border.BorderBrush>
+        <SolidColorBrush Color="Black"/>
+      </Border.BorderBrush>
+    </Border>
+
+    <StackPanel Orientation="Vertical">
+      <TextBlock Text="Achievements" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0 10 0 15" FontSize="24"/>
+
+      <Panel Width="750" Height="400">
+        <StackPanel Orientation="Horizontal">
+          <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Auto" Margin="0 0 50 0">
+            <Grid ColumnDefinitions="100, 100, 100, 100" RowDefinitions="100, 100, 100, 100">
+              <Button Grid.Column="0" Grid.Row="0" Classes="LinkButton">
+                <Panel Width="90" Height="90" Margin="5">
+                  <Panel.Background>
+                    <SolidColorBrush Color="Black" Opacity="0.5"></SolidColorBrush>
+                  </Panel.Background>
+                </Panel>
+              </Button>
+
+              <Button Grid.Column="0" Grid.Row="1" Classes="LinkButton">
+                <Panel Width="90" Height="90" Margin="5">
+                  <Panel.Background>
+                    <SolidColorBrush Color="Black" Opacity="0.5"></SolidColorBrush>
+                  </Panel.Background>
+                </Panel>
+              </Button>
+              
+              <Button Grid.Column="0" Grid.Row="2" Classes="LinkButton">
+                <Panel Width="90" Height="90" Margin="5">
+                  <Panel.Background>
+                    <SolidColorBrush Color="Black" Opacity="0.5"></SolidColorBrush>
+                  </Panel.Background>
+                </Panel>
+              </Button>
+              
+              <Button Grid.Column="0" Grid.Row="3" Classes="LinkButton">
+                <Panel Width="90" Height="90" Margin="5">
+                  <Panel.Background>
+                    <SolidColorBrush Color="Black" Opacity="0.5"></SolidColorBrush>
+                  </Panel.Background>
+                </Panel>
+              </Button>
+
+              <Button Grid.Column="1" Grid.Row="0" Classes="LinkButton">
+                <Panel Width="90" Height="90" Margin="5">
+                  <Panel.Background>
+                    <SolidColorBrush Color="Black" Opacity="0.5"></SolidColorBrush>
+                  </Panel.Background>
+                </Panel>
+              </Button>
+
+              <Button Grid.Column="1" Grid.Row="1" Classes="LinkButton">
+                <Panel Width="90" Height="90" Margin="5">
+                  <Panel.Background>
+                    <SolidColorBrush Color="Black" Opacity="0.5"></SolidColorBrush>
+                  </Panel.Background>
+                </Panel>
+              </Button>
+
+              <Button Grid.Column="1" Grid.Row="2" Classes="LinkButton">
+                <Panel Width="90" Height="90" Margin="5">
+                  <Panel.Background>
+                    <SolidColorBrush Color="Black" Opacity="0.5"></SolidColorBrush>
+                  </Panel.Background>
+                </Panel>
+              </Button>
+
+              <Button Grid.Column="1" Grid.Row="3" Classes="LinkButton">
+                <Panel Width="90" Height="90" Margin="5">
+                  <Panel.Background>
+                    <SolidColorBrush Color="Black" Opacity="0.5"></SolidColorBrush>
+                  </Panel.Background>
+                </Panel>
+              </Button>
+
+              <Button Grid.Column="2" Grid.Row="0" Classes="LinkButton">
+                <Panel Width="90" Height="90" Margin="5">
+                  <Panel.Background>
+                    <SolidColorBrush Color="Black" Opacity="0.5"></SolidColorBrush>
+                  </Panel.Background>
+                </Panel>
+              </Button>
+
+              <Button Grid.Column="2" Grid.Row="1" Classes="LinkButton">
+                <Panel Width="90" Height="90" Margin="5">
+                  <Panel.Background>
+                    <SolidColorBrush Color="Black" Opacity="0.5"></SolidColorBrush>
+                  </Panel.Background>
+                </Panel>
+              </Button>
+
+              <Button Grid.Column="2" Grid.Row="2" Classes="LinkButton">
+                <Panel Width="90" Height="90" Margin="5">
+                  <Panel.Background>
+                    <SolidColorBrush Color="Black" Opacity="0.5"></SolidColorBrush>
+                  </Panel.Background>
+                </Panel>
+              </Button>
+
+              <Button Grid.Column="2" Grid.Row="3" Classes="LinkButton">
+                <Panel Width="90" Height="90" Margin="5">
+                  <Panel.Background>
+                    <SolidColorBrush Color="Black" Opacity="0.5"></SolidColorBrush>
+                  </Panel.Background>
+                </Panel>
+              </Button>
+
+              <Button Grid.Column="3" Grid.Row="0" Classes="LinkButton">
+                <Panel Width="90" Height="90" Margin="5">
+                  <Panel.Background>
+                    <SolidColorBrush Color="Black" Opacity="0.5"></SolidColorBrush>
+                  </Panel.Background>
+                </Panel>
+              </Button>
+
+              <Button Grid.Column="3" Grid.Row="1" Classes="LinkButton">
+                <Panel Width="90" Height="90" Margin="5">
+                  <Panel.Background>
+                    <SolidColorBrush Color="Black" Opacity="0.5"></SolidColorBrush>
+                  </Panel.Background>
+                </Panel>
+              </Button>
+
+              <Button Grid.Column="3" Grid.Row="2" Classes="LinkButton">
+                <Panel Width="90" Height="90" Margin="5">
+                  <Panel.Background>
+                    <SolidColorBrush Color="Black" Opacity="0.5"></SolidColorBrush>
+                  </Panel.Background>
+                </Panel>
+              </Button>
+
+              <Button Grid.Column="3" Grid.Row="3" Classes="LinkButton">
+                <Panel Width="90" Height="90" Margin="5">
+                  <Panel.Background>
+                    <SolidColorBrush Color="Black" Opacity="0.5"></SolidColorBrush>
+                  </Panel.Background>
+                </Panel>
+              </Button>
+            </Grid>
+          </ScrollViewer>
+
+          <Panel Width="350" Height="400">
+            <Panel.Background>
+              <SolidColorBrush Color="Black" Opacity="0.7"></SolidColorBrush>
+            </Panel.Background>
+          </Panel>
+        </StackPanel>
+      </Panel>
+      
+      <Button Classes="LinkButton" Content="Back" Margin="10" Command="{Binding GoBack}"/>
+    </StackPanel>
+  </Panel>
+</Achievements>

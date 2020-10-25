@@ -1,0 +1,168 @@
+﻿<Hangar
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:converter="clr-namespace:Ignition.Converter"
+  xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+  xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+  xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
+  x:Class="Ignition.Views.HangarView">
+
+  <Panel Width="900" Height="500" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <Panel.Background>
+      <SolidColorBrush Color="Black" Opacity="0.1"></SolidColorBrush>
+    </Panel.Background>
+    <Border BorderThickness="1" CornerRadius="1" >
+      <Border.BorderBrush>
+        <SolidColorBrush Color="Black"/>
+      </Border.BorderBrush>
+    </Border>
+
+    <StackPanel Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center">
+      <TextBlock Text="Hangar" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0 10 0 15" FontSize="24"/>
+
+      <Panel Grid.Column="1" Width="550" Height="275" Margin="30 0 30 0">
+        <Panel.Background>
+          <SolidColorBrush Color="Black" Opacity="0.7"></SolidColorBrush>
+        </Panel.Background>
+        <Border BorderThickness="1" CornerRadius="1" >
+          <Border.BorderBrush>
+            <SolidColorBrush Color="Black"/>
+          </Border.BorderBrush>
+        </Border>
+
+        <Grid ColumnDefinitions="*, 275">
+          <StackPanel Grid.Column="0" Margin="0 25 0 0" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center">
+            <TextBlock Text="{Binding Location}" FontSize="18" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+            <TextBlock Text="{Binding Base}" FontSize="18" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+            <TextBlock Text="{Binding Affiliation}" FontSize="18" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+            <TextBlock Text="{Binding Cargo}" FontSize="18" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+          </StackPanel>
+
+          <Panel Grid.Column="1" Width="250" Height="250" Background="Black" Opacity="0.5">
+            <Border BorderThickness="1" CornerRadius="1" BorderBrush="Black"/>
+            <Image Margin="5" Source="{Binding SelectedShipImage, Converter={x:Static converter:PathToImageConverter.Instance}}"/>
+          </Panel>
+        </Grid>
+      </Panel>
+
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 15 0 0">
+        <Button Name="HangarShip1" Classes="LinkButton">
+          <Panel Width="100" Height="100" Margin="10 0 20 0">
+            <Panel.Background>
+              <SolidColorBrush Color="Black" Opacity="0.7"></SolidColorBrush>
+            </Panel.Background>
+            <Border Name="BorderHangarShip1" BorderThickness="1" CornerRadius="1" BorderBrush="Black"/>
+            <Image Margin="5" Source="{Binding Ship1Image, Converter={x:Static converter:PathToImageConverter.Instance}}"/>
+          </Panel>
+
+          <i:Interaction.Behaviors>
+            <ia:EventTriggerBehavior EventName="Click" SourceObject="{Binding #HangarShip1}">
+              <ia:CallMethodAction TargetObject="{Binding}" MethodName="SelectShip1"/>
+            </ia:EventTriggerBehavior>
+            <ia:DataTriggerBehavior Binding="{Binding IsShip1Selected}" ComparisonCondition="Equal" Value="True">
+              <ia:ChangePropertyAction TargetObject="{Binding #BorderHangarShip1}" PropertyName="BorderBrush" Value="{DynamicResource WhiteBrush}"/>
+            </ia:DataTriggerBehavior>
+            <ia:DataTriggerBehavior Binding="{Binding IsShip1Selected}" ComparisonCondition="Equal" Value="False">
+              <ia:ChangePropertyAction TargetObject="{Binding #BorderHangarShip1}" PropertyName="BorderBrush" Value="{DynamicResource BlackBrush}"/>
+            </ia:DataTriggerBehavior>
+          </i:Interaction.Behaviors>
+        </Button>
+
+        <Button Name="HangarShip2" Classes="LinkButton">
+          <Panel Width="100" Height="100" Margin="10 0 20 0">
+            <Panel.Background>
+              <SolidColorBrush Color="Black" Opacity="0.7"></SolidColorBrush>
+            </Panel.Background>
+            <Border Name="BorderHangarShip2" BorderThickness="1" CornerRadius="1" BorderBrush="Black"/>
+            <Image Margin="5" Source="{Binding Ship2Image, Converter={x:Static converter:PathToImageConverter.Instance}}"/>
+          </Panel>
+
+          <i:Interaction.Behaviors>
+            <ia:EventTriggerBehavior EventName="Click" SourceObject="{Binding #HangarShip2}">
+              <ia:CallMethodAction TargetObject="{Binding}" MethodName="SelectShip2"/>
+            </ia:EventTriggerBehavior>
+            <ia:DataTriggerBehavior Binding="{Binding IsShip2Selected}" ComparisonCondition="Equal" Value="True">
+              <ia:ChangePropertyAction TargetObject="{Binding #BorderHangarShip2}" PropertyName="BorderBrush" Value="{DynamicResource WhiteBrush}"/>
+            </ia:DataTriggerBehavior>
+            <ia:DataTriggerBehavior Binding="{Binding IsShip2Selected}" ComparisonCondition="Equal" Value="False">
+              <ia:ChangePropertyAction TargetObject="{Binding #BorderHangarShip2}" PropertyName="BorderBrush" Value="{DynamicResource BlackBrush}"/>
+            </ia:DataTriggerBehavior>
+            <ia:DataTriggerBehavior Binding="{Binding IsShip2Selected, Converter={x:Static ObjectConverters.IsNull}}" ComparisonCondition="Equal" Value="True">
+              <ia:ChangePropertyAction TargetObject="{Binding #BorderHangarShip2}" PropertyName="BorderBrush" Value="{DynamicResource BlackBrush}"/>
+            </ia:DataTriggerBehavior>
+          </i:Interaction.Behaviors>
+        </Button>
+
+        <Button Name="HangarShip3" Classes="LinkButton">
+          <Panel Width="100" Height="100" Margin="10 0 20 0">
+            <Panel.Background>
+              <SolidColorBrush Color="Black" Opacity="0.7"></SolidColorBrush>
+            </Panel.Background>
+            <Border Name="BorderHangarShip3" BorderThickness="1" CornerRadius="1" BorderBrush="Black"/>
+            <Image Margin="5" Source="{Binding Ship3Image, Converter={x:Static converter:PathToImageConverter.Instance}}"/>
+          </Panel>
+
+          <i:Interaction.Behaviors>
+            <ia:EventTriggerBehavior EventName="Click" SourceObject="{Binding #HangarShip3}">
+              <ia:CallMethodAction TargetObject="{Binding}" MethodName="SelectShip3"/>
+            </ia:EventTriggerBehavior>
+            <ia:DataTriggerBehavior Binding="{Binding IsShip3Selected}" ComparisonCondition="Equal" Value="True">
+              <ia:ChangePropertyAction TargetObject="{Binding #BorderHangarShip3}" PropertyName="BorderBrush" Value="{DynamicResource WhiteBrush}"/>
+            </ia:DataTriggerBehavior>
+            <ia:DataTriggerBehavior Binding="{Binding IsShip3Selected}" ComparisonCondition="Equal" Value="False">
+              <ia:ChangePropertyAction TargetObject="{Binding #BorderHangarShip3}" PropertyName="BorderBrush" Value="{DynamicResource BlackBrush}"/>
+            </ia:DataTriggerBehavior>
+          </i:Interaction.Behaviors>
+        </Button>
+
+        <Button Name="HangarShip4" Classes="LinkButton">
+          <Panel Width="100" Height="100" Margin="10 0 20 0">
+            <Panel.Background>
+              <SolidColorBrush Color="Black" Opacity="0.7"></SolidColorBrush>
+            </Panel.Background>
+            <Border Name="BorderHangarShip4" BorderThickness="1" CornerRadius="1" BorderBrush="Black"/>
+            <Image Margin="5" Source="{Binding Ship4Image, Converter={x:Static converter:PathToImageConverter.Instance}}"/>
+          </Panel>
+
+          <i:Interaction.Behaviors>
+            <ia:EventTriggerBehavior EventName="Click" SourceObject="{Binding #HangarShip4}">
+              <ia:CallMethodAction TargetObject="{Binding}" MethodName="SelectShip4"/>
+            </ia:EventTriggerBehavior>
+            <ia:DataTriggerBehavior Binding="{Binding IsShip4Selected}" ComparisonCondition="Equal" Value="True">
+              <ia:ChangePropertyAction TargetObject="{Binding #BorderHangarShip4}" PropertyName="BorderBrush" Value="{DynamicResource WhiteBrush}"/>
+            </ia:DataTriggerBehavior>
+            <ia:DataTriggerBehavior Binding="{Binding IsShip4Selected}" ComparisonCondition="Equal" Value="False">
+              <ia:ChangePropertyAction TargetObject="{Binding #BorderHangarShip4}" PropertyName="BorderBrush" Value="{DynamicResource BlackBrush}"/>
+            </ia:DataTriggerBehavior>
+          </i:Interaction.Behaviors>
+        </Button>
+
+        <Button Name="HangarShip5" Classes="LinkButton">
+          <Panel Width="100" Height="100" Margin="10 0 20 0">
+            <Panel.Background>
+              <SolidColorBrush Color="Black" Opacity="0.7"></SolidColorBrush>
+            </Panel.Background>
+            <Border Name="BorderHangarShip5" BorderThickness="1" CornerRadius="1" BorderBrush="Black"/>
+            <Image Margin="5" Source="{Binding Ship5Image, Converter={x:Static converter:PathToImageConverter.Instance}}"/>
+          </Panel>
+
+          <i:Interaction.Behaviors>
+            <ia:EventTriggerBehavior EventName="Click" SourceObject="{Binding #HangarShip5}">
+              <ia:CallMethodAction TargetObject="{Binding}" MethodName="SelectShip5"/>
+            </ia:EventTriggerBehavior>
+            <ia:DataTriggerBehavior Binding="{Binding IsShip5Selected}" ComparisonCondition="Equal" Value="True">
+              <ia:ChangePropertyAction TargetObject="{Binding #BorderHangarShip5}" PropertyName="BorderBrush" Value="{DynamicResource WhiteBrush}"/>
+            </ia:DataTriggerBehavior>
+            <ia:DataTriggerBehavior Binding="{Binding IsShip5Selected}" ComparisonCondition="Equal" Value="False">
+              <ia:ChangePropertyAction TargetObject="{Binding #BorderHangarShip5}" PropertyName="BorderBrush" Value="{DynamicResource BlackBrush}"/>
+            </ia:DataTriggerBehavior>
+          </i:Interaction.Behaviors>
+        </Button>
+      </StackPanel>
+
+      <Button Classes="LinkButton" Content="Back" Margin="0 10 0 0" Command="{Binding GoBack}"/>
+    </StackPanel>
+  </Panel>
+</Hangar>
