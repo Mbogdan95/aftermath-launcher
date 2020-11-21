@@ -1,0 +1,19 @@
+﻿<WindowSettingsWindow
+      xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      x:Class="Ignition.Views.WindowSettingsView">
+
+    <StackPanel Orientation="Vertical">
+      <ToggleSwitch x:Name="WindowedModeToggleSwitch" Content="Windowed Mode" Margin="10" />
+
+      <ToggleSwitch x:Name="DesktopResolutionToggleSwitch" Content="Default Desktop Resolution" Margin="10" />
+
+      <StackPanel Orientation="Vertical">
+        <TextBlock Text="Resolution" Margin="10"/>
+        <StackPanel Orientation="Horizontal">
+          <TextBox x:Name="WidthResolutionTextBox" Background="#80000000" Watermark="Width" UseFloatingWatermark="True" Margin="10 0 0 0" Width="100" CaretIndex="1" Padding="10,2" IsEnabled="{Binding !#DesktopResolutionToggleSwitch.IsChecked}"/>
+          <TextBox x:Name="HeightResolutionTextBox" Background="#80000000" Watermark="Height" UseFloatingWatermark="True" Margin="10 0 0 0" Width="100" CaretIndex="1" Padding="10,2" IsEnabled="{Binding !#DesktopResolutionToggleSwitch.IsChecked}"/>
+        </StackPanel>
+      </StackPanel>
+    </StackPanel>
+</WindowSettingsWindow>

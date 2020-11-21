@@ -1,20 +1,24 @@
 ﻿namespace Ignition.ViewModels
 {
     using Avalonia.Media;
+    using Ignition.Api;
     using Ignition.Models;
+    using Newtonsoft.Json.Linq;
     using ReactiveUI;
     using ReactiveUI.Fody.Helpers;
-    using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Dynamic;
+    using System.Net;
     using System.Reactive;
+    using System.Runtime.InteropServices;
+    using System.Threading.Tasks;
 
     public class LoginViewModel : BaseViewModel
     {
-        public ReactiveCommand<Unit, Unit> Login { get; }
+        public ReactiveCommand<Unit, Task> Login { get; }
         public ReactiveCommand<Unit, Unit> ForgottenPassword { get; }
         public ReactiveCommand<Unit, Unit> NeedAnAccount { get; }
-
-        private PrimaryWindowViewModel primaryWindowViewModel;
 
         [Reactive]
         public string Email { get; set; }
@@ -26,6 +30,8 @@
 
         public SolidColorBrush LoginErrorColor { get; set; }
 
+        private PrimaryWindowViewModel primaryWindowViewModel;
+
         public LoginViewModel(PrimaryWindowViewModel primaryWindowViewModel)
         {
             this.primaryWindowViewModel = primaryWindowViewModel;
@@ -35,7 +41,7 @@
             NeedAnAccount = ReactiveCommand.Create(NeedAnAccountButtonClick);
         }
 
-        private void LoginButtonClick()
+        private async Task LoginButtonClick()
         {
             if (string.IsNullOrWhiteSpace(Email))
             {
@@ -59,27 +65,27 @@
                 return;
             }
 
-            if (Email == "root" && Password == "root")
+            dynamic dyn = new ExpandoObject();
+            dyn.Email = Email;
+            dyn.Password = Password;
+
+            KeyValuePair<HttpStatusCode, JObject> result = await Utils.Utils.PutRequest("/api/auth/login", dyn);
+
+            if (result.Key is HttpStatusCode.OK)
             {
-                User loggedUser = new User()
+                Debug.WriteLine("Login successful");
+
+                Settings.Instance.SetToken(result.Value["result"]["Token"].ToString());
+
+                primaryWindowViewModel.LoggedUser = new User()
                 {
-                    Username = "Nepo",
+                    Username = result.Value["result"]["Username"].ToString(),
                     Credits = "2,982,943,889",
                     WarningLevel = "110%",
                     Level = 9000,
                     Rank = "SNAC Lover",
-                    Ships = new List<Ship>()
-                    {
-                         new Ship() { ShipName = "Li_elite2", Location = "New York", Base = "Planet Manhatan", Affiliation = "Liberty Navy", Cargo = "Water" },
-                         new Ship() { ShipName = "Bw_vheavy_fighter", Location = "Omicron Alpha", Base = "Planet Malta", Affiliation = "Outcasts", Cargo = "Cardamine, Pilots" },
-                         new Ship() { ShipName = "Havoc_mk_II", Location = "New London", Base = "Planet Malta", Affiliation = "Outcasts", Cargo = "SNACs" },
-                         new Ship() { ShipName = "Cv_vheavy_fighter", Location = "Omicron Alpha", Base = "Planet Malta", Affiliation = "Outcasts", Cargo = "Empty" },
-                         new Ship() { ShipName = "Br_elite", Location = "Omicron Alpha", Base = "Planet Malta", Affiliation = "Outcasts", Cargo = "Credit cards, Food rations, Oxygen, Water" }
-                    }
+                    Avatar = Utils.Utils.GetImageFromUrl(result.Value["result"]["Avatar"].ToString())
                 };
-
-                primaryWindowViewModel.LoggedUser = loggedUser;
-
 
                 HideLoginWindow();
             }
@@ -90,8 +96,6 @@
 
                 this.RaisePropertyChanged(nameof(LoginErrorColor));
                 this.RaisePropertyChanged(nameof(LoginError));
-
-                return;
             }
         }
 
@@ -102,12 +106,62 @@
 
         private void NeedAnAccountButtonClick()
         {
-            throw new NotImplementedException();
+            string url = "https://google.com";
+
+            try
+            {
+                Process.Start(url);
+            }
+            catch
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    url = url.Replace("&", "^&");
+                    Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    Process.Start("xdg-open", url);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    Process.Start("open", url);
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
         private void ForgottenPasswordButtonClick()
         {
-            throw new NotImplementedException();
+            string url = "https://google.com";
+
+            try
+            {
+                Process.Start(url);
+            }
+            catch
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    url = url.Replace("&", "^&");
+                    Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    Process.Start("xdg-open", url);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    Process.Start("open", url);
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
     }
 }

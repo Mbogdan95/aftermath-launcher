@@ -1,5 +1,6 @@
 ﻿namespace Ignition.Models
 {
+    using Avalonia.Media.Imaging;
     using System.Collections.Generic;
 
     public class User
@@ -17,5 +18,8 @@
         public int LevelProgress { get; set; }
 
         public List<Ship> Ships { get; set; }
+
+        public Bitmap Avatar { get; set; }
+
     }
 }

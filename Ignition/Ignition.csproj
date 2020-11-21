@@ -4,8 +4,13 @@
 		<TargetFramework>netcoreapp3.1</TargetFramework>
 	</PropertyGroup>
 	<ItemGroup>
-		<Folder Include="Controls\" />
 		<AvaloniaResource Include="Assets\**" />
+	</ItemGroup>
+	<ItemGroup>
+	  <AvaloniaXaml Remove="Controls\**" />
+	  <Compile Remove="Controls\**" />
+	  <EmbeddedResource Remove="Controls\**" />
+	  <None Remove="Controls\**" />
 	</ItemGroup>
 	<ItemGroup>
 	  <None Remove="Assets\Afternap.jpg" />
@@ -18,14 +23,24 @@
 	  <None Remove="Assets\No_sign.png" />
 	  <None Remove="Assets\space-thumbnail.jpg" />
 	  <None Remove="Assets\wide-space-image.jpg" />
+	  <None Remove="SideBar.xaml" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="0.9.12" />
-		<PackageReference Include="Avalonia.Desktop" Version="0.9.12" />
-		<PackageReference Include="Avalonia.ReactiveUI" Version="0.9.12" />
-		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.9.12" />
-		<PackageReference Include="Projektanker.Icons.Avalonia.FontAwesome" Version="2.0.2" />
-		<PackageReference Include="ReactiveUI.Fody" Version="11.5.35" />
+	  <AvaloniaXaml Include="SideBar.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </AvaloniaXaml>
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Avalonia" Version="0.10.999-cibuild0011450-beta" />
+		<PackageReference Include="Avalonia.Desktop" Version="0.10.999-cibuild0011450-beta" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0011450-beta" />
+		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.0-preview6" />
+		<PackageReference Include="MessageBox.Avalonia" Version="0.10.4-night" />
+		<PackageReference Include="Projektanker.Icons.Avalonia.FontAwesome" Version="3.0.0-pre" />
+		<PackageReference Include="ReactiveUI.Fody" Version="12.1.5" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\Ignition.Api\Ignition.Api.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Update="Views\LandingWindowView.axaml.cs">

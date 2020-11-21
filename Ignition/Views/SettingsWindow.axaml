@@ -1,0 +1,23 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        x:Class="Ignition.Views.SettingsWindow"
+        xmlns:views="clr-namespace:Ignition.Views"
+        xmlns:vm="clr-namespace:Ignition.ViewModels"
+        xmlns:i="clr-namespace:Projektanker.Icons.Avalonia;assembly=Projektanker.Icons.Avalonia"
+        Title="SettingsWindow"
+        WindowStartupLocation="CenterScreen"
+        Width="500"
+				Height="300">
+
+  <Grid RowDefinitions="auto, *">
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+      <Button i:Attached.Icon="fas fa-times-circle" Width="25" Height="25" Background="Transparent" BorderThickness="0" Click="OnButtonClick"/>
+    </StackPanel>
+
+    <Grid Grid.Row="1">
+      <views:SettingsView />
+    </Grid>
+  </Grid>
+</Window>

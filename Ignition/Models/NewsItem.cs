@@ -10,8 +10,6 @@
 
         public string Description { get; set; }
 
-        public string ImageUrl { get; set; }
-
         public string NewsUrl { get; set; }
 
         public Bitmap Image { get; set; }

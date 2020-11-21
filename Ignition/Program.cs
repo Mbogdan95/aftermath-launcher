@@ -1,7 +1,6 @@
 ﻿namespace Ignition
 {
     using Avalonia;
-    using Avalonia.Logging.Serilog;
     using Avalonia.ReactiveUI;
     using Projektanker.Icons.Avalonia;
     using Projektanker.Icons.Avalonia.FontAwesome;
@@ -17,14 +16,9 @@
         // Avalonia configuration, don't remove; also used by visual designer.
         public static AppBuilder BuildAvaloniaApp()
             => AppBuilder.Configure<App>()
-#if _WINDOWS
-                .UseDirect2D1()
-                .UseWin32()
-#else
                 .UsePlatformDetect()
-#endif
+                .UseReactiveUI()
                 .AfterSetup(AfterSetupCallback)
-                .LogToDebug()
                 .UseReactiveUI();
 
         // Called after setup

@@ -241,27 +241,22 @@
                 if (i == 0)
                 {
                     Ship1Image = $"{ships[i].ShipName}.png";
-                    //Ship1Image = "https://discoverygc.com/wiki/images/thumb/f/fe/Flag-liberty.png/220px-Flag-liberty.png";
                 }
                 else if (i == 1)
                 {
                     Ship2Image = $"{ships[i].ShipName}.png";
-                    //Ship2Image = "https://discoverygc.com/wiki/images/thumb/f/fe/Flag-liberty.png/220px-Flag-liberty.png";
                 }
                 else if (i == 2)
                 {
                     Ship3Image = $"{ships[i].ShipName}.png";
-                    //Ship3Image = "https://discoverygc.com/wiki/images/thumb/f/fe/Flag-liberty.png/220px-Flag-liberty.png";
                 }
                 else if (i == 3)
                 {
                     Ship4Image = $"{ships[i].ShipName}.png";
-                    //Ship4Image = "https://discoverygc.com/wiki/images/thumb/f/fe/Flag-liberty.png/220px-Flag-liberty.png";
                 }
                 else if (i == 4)
                 {
                     Ship5Image = $"{ships[i].ShipName}.png";
-                    //Ship5Image = "https://discoverygc.com/wiki/images/thumb/f/fe/Flag-liberty.png/220px-Flag-liberty.png";
                 }
             }
         }
