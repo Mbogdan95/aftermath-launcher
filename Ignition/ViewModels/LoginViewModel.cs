@@ -1,4 +1,7 @@
-﻿namespace Ignition.ViewModels
+﻿using System;
+using System.Globalization;
+
+namespace Ignition.ViewModels
 {
     using Avalonia.Media;
     using Ignition.Api;
@@ -39,6 +42,26 @@
             Login = ReactiveCommand.Create(LoginButtonClick);
             ForgottenPassword = ReactiveCommand.Create(ForgottenPasswordButtonClick);
             NeedAnAccount = ReactiveCommand.Create(NeedAnAccountButtonClick);
+
+            Task.Run(new Action(async () =>
+            {
+                var loggedIn = await Utils.Utils.GetRequest("/api/auth/");
+                if (loggedIn.Key == HttpStatusCode.OK)
+                {
+                    // TODO: Store LoginSig, ID, and Code
+                    primaryWindowViewModel.LoggedUser = new User()
+                    {
+                        Username = loggedIn.Value["user"]["Username"].ToString(),
+                        Credits = loggedIn.Value["user"]["FlhookUser"]["bankCash"].ToObject<long>().ToString("#,##0,,", CultureInfo.InvariantCulture),
+                        WarningLevel = "110%",
+                        Level = 9000,
+                        Rank = "SNAC Lover",
+                        Avatar = Utils.Utils.GetImageFromUrl(loggedIn.Value["user"]["Avatar"].ToString())
+                    };
+
+                    HideLoginWindow();
+                }
+            }));
         }
 
         private async Task LoginButtonClick()
@@ -75,16 +98,17 @@
             {
                 Debug.WriteLine("Login successful");
 
-                Settings.Instance.SetToken(result.Value["result"]["Token"].ToString());
+                Settings.Instance.SetToken(result.Value["Token"].ToString());
 
+                // TODO: Store LoginSig, ID, and Code
                 primaryWindowViewModel.LoggedUser = new User()
                 {
-                    Username = result.Value["result"]["Username"].ToString(),
-                    Credits = "2,982,943,889",
+                    Username = result.Value["Username"].ToString(),
+                    Credits = result.Value["user"]["flhookUser"]["bankCash"].ToObject<long>().ToString("#,##0,,", CultureInfo.InvariantCulture),
                     WarningLevel = "110%",
                     Level = 9000,
                     Rank = "SNAC Lover",
-                    Avatar = Utils.Utils.GetImageFromUrl(result.Value["result"]["Avatar"].ToString())
+                    Avatar = Utils.Utils.GetImageFromUrl(result.Value["Avatar"].ToString())
                 };
 
                 HideLoginWindow();
@@ -106,7 +130,7 @@
 
         private void NeedAnAccountButtonClick()
         {
-            string url = "https://google.com";
+            string url = "https://forums.aftermath.space/signup";
 
             try
             {
@@ -136,7 +160,7 @@
 
         private void ForgottenPasswordButtonClick()
         {
-            string url = "https://google.com";
+            string url = "https://forums.aftermath.space/login";
 
             try
             {

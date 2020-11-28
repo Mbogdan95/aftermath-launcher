@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace Ignition.Api
@@ -29,9 +30,7 @@ namespace Ignition.Api
 
         private void LoadData()
         {
-            bool valid = File.Exists(fileLocation + "/config.json");
-
-            if (valid)
+            if (File.Exists(fileLocation + "/config.json"))
             {
                 try
                 {
@@ -42,23 +41,34 @@ namespace Ignition.Api
                 catch (Exception)
                 {
                     // TODO: LOG ERROR
-
-                    valid = false;
+                    GenerateDefaultConfig();
                 }
             }
-
-            if (!valid)
+            else
             {
-                this.LauncherData = new Data()
-                {
-                    AftermathInstall = fileLocation + "/../Game",
-                    PatchServer = "https://patch.aftermath.space",
-                    NewsLocation = "https://files.aftermath.space/Launcher/news.json",
-                    ApiLocation = "https://api.aftermath.space",
-                    DefaultDesktopResolution = true,
-                    WindowedMode = false
-                };
+                GenerateDefaultConfig();
             }
+        }
+
+        private void GenerateDefaultConfig()
+        {
+            DirectoryInfo d = new DirectoryInfo(Process.GetCurrentProcess().MainModule.FileName);
+            if (d.Parent == null)
+            {
+                throw new IOException("Launcher process was at drive root which is forbidden.");
+            }
+
+            this.LauncherData = new Data()
+            {
+                AftermathInstall = fileLocation + "/../Game",
+                PatchServer = "https://files.aftermath.space/Launcher/GameData",
+                NewsLocation = "https://files.aftermath.space/Launcher/news.json",
+                ApiLocation = "https://api.aftermath.space",
+                DefaultDesktopResolution = true,
+                WindowedMode = false
+            };
+
+            Directory.CreateDirectory(this.LauncherData.AftermathInstall);
         }
 
         public void SetToken(string token)
@@ -89,18 +99,11 @@ namespace Ignition.Api
             SaveData();
         }
 
-        public void SetWidthResolution(int value)
+        public void SetResolution(int w, int h)
         {
-            LauncherData.WidthResolution = value;
-
-            SaveData();
-        }
-
-        public void SetHeightResolution(int value)
-        {
-            LauncherData.HeightResolution = value;
-
-            SaveData();
+            this.LauncherData.WidthResolution = w;
+            this.LauncherData.HeightResolution = h;
+            this.SaveData();
         }
 
         public class Data

@@ -33,14 +33,14 @@ namespace Ignition.Views
         {
             TextBox textBox = (TextBox)sender;
 
-            if (textBox.Name == "WidthResolutionTextBox")
+            /*if (textBox.Name == "WidthResolutionTextBox")
             {
                 Settings.Instance.SetWidthResolution(Convert.ToInt32(textBox.Text));
             }
             else if (textBox.Name == "HeightResolutionTextBox")
             {
                 Settings.Instance.SetHeightResolution(Convert.ToInt32(textBox.Text));
-            }
+            }*/
         }
 
         private void ToggleSwitchClick(object sender, Avalonia.Interactivity.RoutedEventArgs e)

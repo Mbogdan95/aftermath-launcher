@@ -2,6 +2,7 @@
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>netcoreapp3.1</TargetFramework>
+		<ApplicationIcon>IgnitionLogo.ico</ApplicationIcon>
 	</PropertyGroup>
 	<ItemGroup>
 		<AvaloniaResource Include="Assets\**" />
@@ -31,15 +32,17 @@
 	  </AvaloniaXaml>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="0.10.999-cibuild0011450-beta" />
-		<PackageReference Include="Avalonia.Desktop" Version="0.10.999-cibuild0011450-beta" />
-		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0011450-beta" />
+		<PackageReference Include="Avalonia" Version="0.10.0-preview6" />
+		<PackageReference Include="Avalonia.Desktop" Version="0.10.0-preview6" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.0-preview6" />
 		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.0-preview6" />
-		<PackageReference Include="MessageBox.Avalonia" Version="0.10.4-night" />
+		<PackageReference Include="Avalonia.Xaml.Interactions" Version="0.10.0-preview6" />
+		<PackageReference Include="Avalonia.Xaml.Interactivity" Version="0.10.0-preview6" />
 		<PackageReference Include="Projektanker.Icons.Avalonia.FontAwesome" Version="3.0.0-pre" />
 		<PackageReference Include="ReactiveUI.Fody" Version="12.1.5" />
 	</ItemGroup>
 	<ItemGroup>
+	  <ProjectReference Include="..\AvaloniaMessageBox\src\MessageBox.Avalonia\MessageBox.Avalonia.csproj" />
 	  <ProjectReference Include="..\Ignition.Api\Ignition.Api.csproj" />
 	</ItemGroup>
 	<ItemGroup>

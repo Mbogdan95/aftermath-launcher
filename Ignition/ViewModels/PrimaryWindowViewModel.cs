@@ -1,5 +1,12 @@
 ﻿namespace Ignition.ViewModels
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Net;
+    using System.Reactive;
+    using System.Reflection;
+    using System.Threading.Tasks;
     using Avalonia;
     using Avalonia.Controls;
     using Avalonia.Controls.ApplicationLifetimes;
@@ -10,18 +17,12 @@
     using Newtonsoft.Json.Linq;
     using ReactiveUI;
     using ReactiveUI.Fody.Helpers;
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Net;
-    using System.Reactive;
-    using System.Reflection;
-    using System.Threading.Tasks;
 
     public class PrimaryWindowViewModel : BaseViewModel
     {
         public string IgVersion => Version.Parse(FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion).ToString();
-        public string GameVersion { get; }
+        public string GameVersion { get; private set; }
+        public bool GameInstalled { get; private set; }
 
         public ReactiveCommand<Unit, Unit> Close { get; }
         public ReactiveCommand<Unit, Unit> Minimize { get; }
@@ -37,9 +38,7 @@
 
         public PrimaryWindowViewModel()
         {
-            FileVersionInfo info = FileVersionInfo.GetVersionInfo(@"D:\Aftermath\EXE\Freelancer.exe");
-            string[] arr = info.FileVersion.Split(", ");
-            GameVersion = $"{arr[0]}.{arr[1]}.{arr[2]}";
+            this.UpdateGameVersion();
 
             Close = ReactiveCommand.Create(CloseButtonClick);
             Minimize = ReactiveCommand.Create(MinimizeButtonClick);
@@ -47,7 +46,23 @@
 
             SelectedViewModel = new LoginViewModel(this);
 
-            Task.Factory.StartNew(() => LoadNews());
+            Task.Factory.StartNew(LoadNews);
+        }
+
+        private void UpdateGameVersion()
+        {
+            try
+            {
+                FileVersionInfo info = FileVersionInfo.GetVersionInfo(Settings.Instance.LauncherData.AftermathInstall + "/EXE/Freelancer.exe");
+                string[] arr = info.FileVersion.Split(", ");
+                this.GameVersion = $"{arr[0]}.{arr[1]}.{arr[2]}";
+                this.GameInstalled = true;
+            }
+            catch
+            {
+                this.GameVersion = "N/A";
+                this.GameInstalled = false;
+            }
         }
 
         public void OnUpdateView(string parameter)
