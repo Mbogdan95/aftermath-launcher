@@ -2,11 +2,15 @@
 using Avalonia.Markup.Xaml;
 using Ignition.Api;
 using System;
+using System.Text.RegularExpressions;
 
 namespace Ignition.Views
 {
     public class WindowSettingsView : UserControl
     {
+        private TextBox widthResolutionTextBox;
+        private TextBox heightResolutionTextBox;
+
         public WindowSettingsView()
         {
             InitializeComponent();
@@ -15,6 +19,9 @@ namespace Ignition.Views
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
+
+            widthResolutionTextBox = this.FindControl<TextBox>("WidthResolutionTextBox");
+            heightResolutionTextBox = this.FindControl<TextBox>("HeightResolutionTextBox");
 
             this.FindControl<ToggleSwitch>("WindowedModeToggleSwitch").Click += ToggleSwitchClick;
             this.FindControl<ToggleSwitch>("DesktopResolutionToggleSwitch").Click += ToggleSwitchClick;
@@ -25,22 +32,20 @@ namespace Ignition.Views
             this.FindControl<TextBox>("WidthResolutionTextBox").KeyUp += TextBoxTextInput;
             this.FindControl<TextBox>("HeightResolutionTextBox").KeyUp += TextBoxTextInput;
 
-            this.FindControl<TextBox>("WidthResolutionTextBox").Text = Settings.Instance.LauncherData.WidthResolution.ToString();
-            this.FindControl<TextBox>("HeightResolutionTextBox").Text = Settings.Instance.LauncherData.HeightResolution.ToString();
+            widthResolutionTextBox.Text = Settings.Instance.LauncherData.WidthResolution.ToString();
+            heightResolutionTextBox.Text = Settings.Instance.LauncherData.HeightResolution.ToString();
         }
 
         private void TextBoxTextInput(object sender, Avalonia.Input.KeyEventArgs e)
         {
-            TextBox textBox = (TextBox)sender;
+            string widthResolutionTextBoxText = widthResolutionTextBox.Text;
+            string heightResolutionTextBoxText = heightResolutionTextBox.Text;
 
-            /*if (textBox.Name == "WidthResolutionTextBox")
-            {
-                Settings.Instance.SetWidthResolution(Convert.ToInt32(textBox.Text));
-            }
-            else if (textBox.Name == "HeightResolutionTextBox")
-            {
-                Settings.Instance.SetHeightResolution(Convert.ToInt32(textBox.Text));
-            }*/
+            Regex rgx = new Regex("[^0-9]");
+            widthResolutionTextBoxText = rgx.Replace(widthResolutionTextBoxText, "");
+            heightResolutionTextBoxText = rgx.Replace(heightResolutionTextBoxText, "");
+
+            Settings.Instance.SetResolution(Convert.ToInt32(widthResolutionTextBoxText), Convert.ToInt32(heightResolutionTextBoxText));
         }
 
         private void ToggleSwitchClick(object sender, Avalonia.Interactivity.RoutedEventArgs e)

@@ -32,7 +32,7 @@ namespace Ignition.Views
 
             if (toggleSwitch.Name == "StayLoggedInToggleSwitch")
             {
-                Settings.Instance.SetToken(string.Empty);
+                Settings.Instance.SetStayLoggedIn((bool)toggleSwitch.IsChecked);
             }
         }
 
@@ -60,6 +60,8 @@ namespace Ignition.Views
 
             if (messageBoxCustomWindow == "OK")
             {
+                Settings.Instance.GenerateDefaultConfig();
+
                 RestartProgram();
             }
         }

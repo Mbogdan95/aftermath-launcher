@@ -50,7 +50,7 @@
 
                     <TextBlock Text="{Binding Title}" TextWrapping="Wrap" FontSize="14" FontWeight="SemiBold" Margin=" 0 2 0 2"/>
                     <TextBlock Text="{Binding Date}" TextWrapping="Wrap" FontSize="9" FontStyle="Italic" Margin=" 0 2 0 2"/>
-                    <TextBlock Text="{Binding Description}" TextWrapping="Wrap" FontSize="12" Margin=" 0 2 0 2"/>
+                    <TextBlock Text="{Binding Description}" TextWrapping="Wrap" FontSize="12" Margin=" 0 2 0 2" HorizontalAlignment="Stretch"/>
                   </StackPanel>
                 </Panel>
               </Button>

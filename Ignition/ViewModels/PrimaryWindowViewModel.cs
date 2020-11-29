@@ -1,12 +1,5 @@
 ﻿namespace Ignition.ViewModels
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Net;
-    using System.Reactive;
-    using System.Reflection;
-    using System.Threading.Tasks;
     using Avalonia;
     using Avalonia.Controls;
     using Avalonia.Controls.ApplicationLifetimes;
@@ -17,6 +10,13 @@
     using Newtonsoft.Json.Linq;
     using ReactiveUI;
     using ReactiveUI.Fody.Helpers;
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Net;
+    using System.Reactive;
+    using System.Reflection;
+    using System.Threading.Tasks;
     using WebRequest = Api.WebRequest;
 
     public class PrimaryWindowViewModel : BaseViewModel
@@ -25,10 +25,12 @@
         public string IgVersion => Version.Parse(FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion).ToString();
 
         // Variable that stores the game version
-        public string GameVersion { get; private set; }
+        [Reactive]
+        public string GameVersion { get;  set; }
 
         // Variable that stores the state of the game INSTALLED/NOT INSTALLED
-        public bool GameInstalled { get; private set; }
+        [Reactive]
+        public bool GameInstalled { get;  set; }
 
         // Variables for buttons
         public ReactiveCommand<Unit, Unit> Close { get; }
@@ -125,29 +127,36 @@
         /// </summary>
         private void LoadNews()
         {
-            // Start task to not freeze UI
-            Task.Factory.StartNew(() =>
+            try
             {
-                // Initialize variables
-                SiriusNews = new List<NewsItem>();
-                ModNews = new List<NewsItem>();
-
-                using WebClient webClient = new WebClient();
-
-                // Get JSON string from link
-                string jsonString = webClient.DownloadString(Settings.Instance.LauncherData.NewsLocation);
-
-                // Loop through each JObject
-                foreach (JObject item in JsonConvert.DeserializeObject<JArray>(jsonString).ToObject<List<JObject>>())
+                // Start task to not freeze UI
+                Task.Factory.StartNew(() =>
                 {
-                    // Create news item
-                    NewsItem newsItem = new NewsItem() { Title = item["title"].ToString(), Description = "  " + item["subtitle"].ToString(), Date = item["date"].ToString(), Image = WebRequest.GetImageFromUrl(item["imageUrl"].ToString()), NewsUrl = item["url"].ToString() };
+                    // Initialize variables
+                    SiriusNews = new List<NewsItem>();
+                    ModNews = new List<NewsItem>();
 
-                    // Add news item to list
-                    SiriusNews.Add(newsItem);
-                    ModNews.Add(newsItem);
-                }
-            }).Wait();
+                    using WebClient webClient = new WebClient();
+
+                    // Get JSON string from link
+                    string jsonString = webClient.DownloadString(Settings.Instance.LauncherData.NewsLocation);
+
+                    // Loop through each JObject
+                    foreach (JObject item in JsonConvert.DeserializeObject<JArray>(jsonString).ToObject<List<JObject>>())
+                    {
+                        // Create news item
+                        NewsItem newsItem = new NewsItem() { Title = item["title"].ToString(), Description = "  " + item["subtitle"].ToString(), Date = item["date"].ToString(), Image = WebRequest.GetImageFromUrl(item["imageUrl"].ToString()), NewsUrl = item["url"].ToString() };
+
+                        // Add news item to list
+                        SiriusNews.Add(newsItem);
+                        ModNews.Add(newsItem);
+                    }
+                }).Wait();
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteLog("Error occurred while loading news. Error: " + ex.Message);
+            }
         }
 
         private void SettingsPanelClick()

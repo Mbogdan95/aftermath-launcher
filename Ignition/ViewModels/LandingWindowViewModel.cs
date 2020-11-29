@@ -15,11 +15,8 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.IO;
-    using System.Linq;
     using System.Reactive;
     using System.Runtime.InteropServices;
-    using System.Security.Cryptography;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -80,19 +77,19 @@
 
             User = primaryWindowViewModel.LoggedUser;
 
-            GameInstalled = this.primaryWindowViewModel.GameInstalled ? "Launch" : "Download";
+            GameInstalled = primaryWindowViewModel.GameInstalled ? "Launch" : "Download";
         }
 
         private async Task PrepareGameUpdates(bool initialDownload)
         {
             if (initialDownload)
             {
-                ProgressType = "DOWNLOADING GAME...";
+                ProgressType = "DOWNLOADING GAME";
                 this.RaisePropertyChanged(nameof(ProgressType));
             }
             else
             {
-                ProgressType = "PATCHING GAME...";
+                ProgressType = "PATCHING GAME";
                 this.RaisePropertyChanged(nameof(ProgressType));
             }
 
@@ -114,11 +111,13 @@
                 this.RaisePropertyChanged(nameof(CurrentFile));
             }
 
-            await Downloader.IntegrityCheck(CurrentActionChanged, CurrentProgressChanged, this.cancellationToken);
+            await Downloader.IntegrityCheck(CurrentActionChanged, CurrentProgressChanged, cancellationToken);
+
 
             if (initialDownload)
             {
                 ProgressWindowButtonName = "OK";
+                this.RaisePropertyChanged(nameof(ProgressWindowButtonName));
 
                 CurrentAction = "Download complete";
                 this.RaisePropertyChanged(nameof(CurrentAction));
@@ -128,11 +127,17 @@
 
                 CurrentFile = string.Empty;
                 this.RaisePropertyChanged(nameof(CurrentFile));
+
+                UpdateGameVersion();
             }
         }
 
         private async Task LaunchButtonClick()
         {
+            cancellationToken = new CancellationTokenSource();
+
+            ProgressWindowButtonName = "Cancel";
+
             progressWindow = new ProgressWindow
             {
                 DataContext = this
@@ -156,7 +161,6 @@
             await Task.Factory.StartNew(() => PrepareGameUpdates(false).Wait());
 
             progressWindow.Close();
-            Debug.WriteLine("Test");
 
             List<string> exeArguments = new List<string>()
             {
@@ -370,6 +374,37 @@
                 cancellationToken.Cancel();
             }
             progressWindow.Close();
+        }
+
+        /// <summary>
+        /// Gets the current game version
+        /// </summary>
+        private void UpdateGameVersion()
+        {
+            try
+            {
+                // Get info of Freelancer.exe
+                FileVersionInfo info = FileVersionInfo.GetVersionInfo(Settings.Instance.LauncherData.AftermathInstall + "/EXE/Freelancer.exe");
+
+                // Split the file version in a string array
+                string[] arr = info.FileVersion.Split(", ");
+
+                // Set the game version
+                primaryWindowViewModel.GameVersion = $"{arr[0]}.{arr[1]}.{arr[2]}";
+
+                // Set the game as installed
+                primaryWindowViewModel.GameInstalled = true;
+            }
+            catch
+            {
+                // No game version
+                primaryWindowViewModel.GameVersion = "N/A";
+
+                // Game not installed
+                primaryWindowViewModel.GameInstalled = false;
+            }
+
+            GameInstalled = primaryWindowViewModel.GameInstalled ? "Launch" : "Download";
         }
     }
 }

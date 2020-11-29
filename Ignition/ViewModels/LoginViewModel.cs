@@ -2,20 +2,21 @@
 
 namespace Ignition.ViewModels
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Dynamic;
-    using System.Globalization;
-    using System.Reactive;
-    using System.Runtime.InteropServices;
-    using System.Threading.Tasks;
     using Avalonia.Media;
     using Ignition.Api;
     using Ignition.Models;
     using Newtonsoft.Json.Linq;
     using ReactiveUI;
     using ReactiveUI.Fody.Helpers;
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Dynamic;
+    using System.Globalization;
+    using System.Net.Mail;
+    using System.Reactive;
+    using System.Runtime.InteropServices;
+    using System.Threading.Tasks;
 
     public class LoginViewModel : BaseViewModel
     {
@@ -58,6 +59,23 @@ namespace Ignition.ViewModels
 
                 return;
             }
+            else
+            {
+                try
+                {
+                    MailAddress m = new MailAddress(Email);
+                }
+                catch (FormatException)
+                {
+                    LoginError = "Email is invalid";
+                    LoginErrorColor = new SolidColorBrush(Colors.Red);
+
+                    this.RaisePropertyChanged(nameof(LoginErrorColor));
+                    this.RaisePropertyChanged(nameof(LoginError));
+
+                    return;
+                }
+            }
 
             if (string.IsNullOrWhiteSpace(Password))
             {
@@ -76,7 +94,7 @@ namespace Ignition.ViewModels
 
             KeyValuePair<HttpStatusCode, JObject> result = await WebRequest.PutRequest("/api/auth/login", dynamicObject);
 
-            if (result.Key is HttpStatusCode.OK)
+            if (result.Key == HttpStatusCode.OK)
             {
                 Debug.WriteLine("Login successful");
 
@@ -96,6 +114,14 @@ namespace Ignition.ViewModels
                 };
 
                 HideLoginWindow();
+            }
+            else if (result.Key == 0)
+            {
+                LoginError = "Connection error";
+                LoginErrorColor = new SolidColorBrush(Colors.Red);
+
+                this.RaisePropertyChanged(nameof(LoginErrorColor));
+                this.RaisePropertyChanged(nameof(LoginError));
             }
             else
             {

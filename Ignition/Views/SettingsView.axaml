@@ -22,10 +22,7 @@
       <TabItem Header="Launcher Settings">
         <views:LauncherSettingsView />
       </TabItem>
-      <TabItem Header="SettingsGroup3">
-      </TabItem>
-      <TabItem Header="SettingsGroup4">
-      </TabItem>
+
     </TabControl>
   </Grid>
 </SettingsView>

@@ -1,8 +1,10 @@
 ﻿namespace Ignition.Api
 {
+    using Avalonia.Media.Imaging;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Net;
@@ -10,9 +12,6 @@
     using System.Net.Http.Headers;
     using System.Text;
     using System.Threading.Tasks;
-    using Avalonia.Media.Imaging;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
 
     public static class WebRequest
     {
@@ -61,55 +60,62 @@
 
             StringContent stringContent = obj is null ? new StringContent("{}", Encoding.UTF8, "application/json") : new StringContent(JsonConvert.SerializeObject(obj), Encoding.UTF8, "application/json");
 
-            // TODO: Try Catch for HttpRequestException if no internet or server down
-
-            HttpResponseMessage msg = null;
-            switch (type)
+            try
             {
-                case RequestType.GET:
-                    msg = await client.GetAsync(rootUrl + url);
-                    break;
-                case RequestType.POST:
-                    msg = await client.PostAsync(rootUrl + url, stringContent);
-                    break;
-                case RequestType.PUT:
-                    msg = await client.PutAsync(rootUrl + url, stringContent);
-                    break;
-                case RequestType.DELETE:
-                    var request = new HttpRequestMessage
-                    {
-                        Method = HttpMethod.Delete,
-                        RequestUri = new Uri(rootUrl + url),
-                        Content = stringContent
-                    };
-                    msg = await client.SendAsync(request);
-                    break;
-                case RequestType.PATCH:
-                    msg = await client.PatchAsync(rootUrl + url, stringContent);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
-            }
-
-            var key = msg.StatusCode;
-
-            var value = await msg.Content.ReadAsStringAsync();
-
-            var retObj = JsonConvert.DeserializeObject<JObject>(value);
-
-            var errors = retObj["errors"].Cast<List<string>>();
-
-            if (key != HttpStatusCode.Accepted && key == HttpStatusCode.OK && key != HttpStatusCode.Created)
-            {
-                // TODO: LOG ERROR
-
-                foreach (var error in errors)
+                HttpResponseMessage msg = null;
+                switch (type)
                 {
-                    Debug.WriteLine(error);
+                    case RequestType.GET:
+                        msg = await client.GetAsync(rootUrl + url);
+                        break;
+                    case RequestType.POST:
+                        msg = await client.PostAsync(rootUrl + url, stringContent);
+                        break;
+                    case RequestType.PUT:
+                        msg = await client.PutAsync(rootUrl + url, stringContent);
+                        break;
+                    case RequestType.DELETE:
+                        var request = new HttpRequestMessage
+                        {
+                            Method = HttpMethod.Delete,
+                            RequestUri = new Uri(rootUrl + url),
+                            Content = stringContent
+                        };
+                        msg = await client.SendAsync(request);
+                        break;
+                    case RequestType.PATCH:
+                        msg = await client.PatchAsync(rootUrl + url, stringContent);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(type), type, null);
                 }
-            }
 
-            return new KeyValuePair<HttpStatusCode, JObject>(key, retObj["result"].ToObject<JObject>());
+                var key = msg.StatusCode;
+
+                var value = await msg.Content.ReadAsStringAsync();
+
+                var retObj = JsonConvert.DeserializeObject<JObject>(value);
+
+                var errors = retObj["errors"].Cast<List<string>>();
+
+                if (key != HttpStatusCode.Accepted && key == HttpStatusCode.OK && key != HttpStatusCode.Created)
+                {
+                    foreach (var error in errors)
+                    {
+                        foreach (var item in error)
+                        {
+                            Logger.WriteLog("Error occurred while executing HTTP request. Error: " + item);
+                        }
+                    }
+                }
+
+                return new KeyValuePair<HttpStatusCode, JObject>(key, retObj["result"].ToObject<JObject>());
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteLog("Error occurred while executing HTTP request. Error: " + ex.Message);
+                return default;
+            }
         }
     }
 }

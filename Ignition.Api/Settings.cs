@@ -38,10 +38,11 @@ namespace Ignition.Api
 
                     LauncherData = JsonConvert.DeserializeObject<Data>(content);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // TODO: LOG ERROR
                     GenerateDefaultConfig();
+
+                    Logger.WriteLog("Unable to read config.json. Error: " + ex.Message);
                 }
             }
             else
@@ -50,9 +51,10 @@ namespace Ignition.Api
             }
         }
 
-        private void GenerateDefaultConfig()
+        public void GenerateDefaultConfig()
         {
             DirectoryInfo d = new DirectoryInfo(Process.GetCurrentProcess().MainModule.FileName);
+
             if (d.Parent == null)
             {
                 throw new IOException("Launcher process was at drive root which is forbidden.");
@@ -69,6 +71,8 @@ namespace Ignition.Api
             };
 
             Directory.CreateDirectory(LauncherData.AftermathInstall);
+
+            SaveData();
         }
 
         public void SetToken(string token)

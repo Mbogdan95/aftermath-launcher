@@ -3,12 +3,10 @@
 namespace Ignition.Api
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using System.Security.Cryptography;
     using System.Threading;
     using System.Threading.Tasks;
@@ -28,7 +26,7 @@ namespace Ignition.Api
             DownloadCount = files.Count;
             ParallelOptions options = new ParallelOptions
             {
-                MaxDegreeOfParallelism = 2,
+                MaxDegreeOfParallelism = 5,
                 CancellationToken = cts.Token,
             };
 
@@ -37,7 +35,6 @@ namespace Ignition.Api
                 Parallel.ForEach(files, options, (x) =>
                 {
                     DownloadFile(x.Key, x.Value);
-                    options.CancellationToken.ThrowIfCancellationRequested();
                 });
             }
             catch (OperationCanceledException)
@@ -54,27 +51,33 @@ namespace Ignition.Api
 
         private static void DownloadFile(string downloadPath, string outputPath)
         {
-            // TODO: Catch any exceptions that may come up (permission errors, internet offline, etc)
-            var client = new HttpClient();
-            var res = client.GetAsync(downloadPath);
-            res.Wait();
-            var bytes = res.Result.Content.ReadAsByteArrayAsync();
-            string filePath = outputPath;
-            Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
-            FileStream fileHandle = File.Create(filePath);
-            bytes.Wait();
-            fileHandle.Write(bytes.Result);
-            fileHandle.Close();
+            try
+            {
+                var client = new HttpClient();
+                var res = client.GetAsync(downloadPath);
+                res.Wait();
+                var bytes = res.Result.Content.ReadAsByteArrayAsync();
+                string filePath = outputPath;
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+                FileStream fileHandle = File.Create(filePath);
+                bytes.Wait();
+                fileHandle.Write(bytes.Result);
+                fileHandle.Close();
 
-            // File download complete
-            double localIndex = Interlocked.CompareExchange(ref fileIndex, 0, 0);
-            double progress = localIndex / DownloadCount * 100;
+                // File download complete
+                double localIndex = Interlocked.CompareExchange(ref fileIndex, 0, 0);
+                double progress = localIndex / DownloadCount * 100;
 
-            string progressString = $"{localIndex}/{DownloadCount}";
-            string currentFile = "Downloaded File: " + outputPath;
-            SetCurrentProgress(progress, progressString, currentFile);
+                string progressString = $"{localIndex}/{DownloadCount}";
+                string currentFile = "Downloaded File: " + outputPath;
+                SetCurrentProgress(progress, progressString, currentFile);
 
-            Interlocked.Increment(ref fileIndex);
+                Interlocked.Increment(ref fileIndex);
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteLog("Error occurred while downloading files. ERROR: " + ex.Message);
+            }
         }
 
         private static uint StringToFnvHash(string str)
@@ -118,10 +121,20 @@ namespace Ignition.Api
 
             foreach (string dir in Directory.EnumerateDirectories(fileDir, "*", SearchOption.AllDirectories).Where(x => ignoredDirs.All(dir => !x.ToUpper().Contains(dir))))
             {
+                if (cts.IsCancellationRequested)
+                {
+                    return;
+                }
+
                 fileIndex = 1;
 
                 foreach (string file in Directory.GetFiles(dir))
                 {
+                    if (cts.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
                     await using FileStream fs = new FileStream(file, FileMode.Open);
                     await using BufferedStream bs = new BufferedStream(fs, 10 * 1024);
                     using SHA1Managed sha1 = new SHA1Managed();
