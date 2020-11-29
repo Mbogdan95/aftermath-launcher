@@ -1,7 +1,4 @@
-﻿using System;
-using System.Globalization;
-
-namespace Ignition.ViewModels
+﻿namespace Ignition.ViewModels
 {
     using Avalonia.Media;
     using Ignition.Api;
@@ -9,9 +6,11 @@ namespace Ignition.ViewModels
     using Newtonsoft.Json.Linq;
     using ReactiveUI;
     using ReactiveUI.Fody.Helpers;
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Dynamic;
+    using System.Globalization;
     using System.Net;
     using System.Reactive;
     using System.Runtime.InteropServices;
@@ -43,25 +42,7 @@ namespace Ignition.ViewModels
             ForgottenPassword = ReactiveCommand.Create(ForgottenPasswordButtonClick);
             NeedAnAccount = ReactiveCommand.Create(NeedAnAccountButtonClick);
 
-            Task.Run(new Action(async () =>
-            {
-                var loggedIn = await Utils.Utils.GetRequest("/api/auth/");
-                if (loggedIn.Key == HttpStatusCode.OK)
-                {
-                    // TODO: Store LoginSig, ID, and Code
-                    primaryWindowViewModel.LoggedUser = new User()
-                    {
-                        Username = loggedIn.Value["user"]["Username"].ToString(),
-                        Credits = loggedIn.Value["user"]["FlhookUser"]["bankCash"].ToObject<long>().ToString("#,##0,,", CultureInfo.InvariantCulture),
-                        WarningLevel = "110%",
-                        Level = 9000,
-                        Rank = "SNAC Lover",
-                        Avatar = Utils.Utils.GetImageFromUrl(loggedIn.Value["user"]["Avatar"].ToString())
-                    };
-
-                    HideLoginWindow();
-                }
-            }));
+            AutoLogIn();
         }
 
         private async Task LoginButtonClick()
@@ -88,11 +69,11 @@ namespace Ignition.ViewModels
                 return;
             }
 
-            dynamic dyn = new ExpandoObject();
-            dyn.Email = Email;
-            dyn.Password = Password;
+            dynamic dynamicObject = new ExpandoObject();
+            dynamicObject.Email = Email;
+            dynamicObject.Password = Password;
 
-            KeyValuePair<HttpStatusCode, JObject> result = await Utils.Utils.PutRequest("/api/auth/login", dyn);
+            KeyValuePair<HttpStatusCode, JObject> result = await Utils.Utils.PutRequest("/api/auth/login", dynamicObject);
 
             if (result.Key is HttpStatusCode.OK)
             {
@@ -100,15 +81,17 @@ namespace Ignition.ViewModels
 
                 Settings.Instance.SetToken(result.Value["Token"].ToString());
 
-                // TODO: Store LoginSig, ID, and Code
                 primaryWindowViewModel.LoggedUser = new User()
                 {
                     Username = result.Value["Username"].ToString(),
-                    Credits = result.Value["user"]["flhookUser"]["bankCash"].ToObject<long>().ToString("#,##0,,", CultureInfo.InvariantCulture),
+                    Credits = result.Value["FlhookUser"]["bankCash"].ToObject<long>().ToString("#,##0,,", CultureInfo.InvariantCulture),
                     WarningLevel = "110%",
                     Level = 9000,
                     Rank = "SNAC Lover",
-                    Avatar = Utils.Utils.GetImageFromUrl(result.Value["Avatar"].ToString())
+                    Avatar = Utils.Utils.GetImageFromUrl(result.Value["Avatar"].ToString()),
+                    //AccSig = result.Value["FlhookUser"]["loginSignature"].ToObject<uint>(),
+                    //AccCode = result.Value["FlhookUser"]["loginCode"].ToObject<uint>(),
+                    PlayerID = result.Value["FlhookUser"]["id"].ToString()
                 };
 
                 HideLoginWindow();
@@ -120,6 +103,34 @@ namespace Ignition.ViewModels
 
                 this.RaisePropertyChanged(nameof(LoginErrorColor));
                 this.RaisePropertyChanged(nameof(LoginError));
+            }
+        }
+
+        private void AutoLogIn()
+        {
+            if (Settings.Instance.LauncherData.StayLoggedIn)
+            {
+                Task.Run(new Action(async () =>
+                {
+                    var loggedIn = await Utils.Utils.GetRequest("/api/auth/");
+                    if (loggedIn.Key == HttpStatusCode.OK)
+                    {
+                        primaryWindowViewModel.LoggedUser = new User()
+                        {
+                            Username = loggedIn.Value["user"]["Username"].ToString(),
+                            Credits = loggedIn.Value["user"]["FlhookUser"]["bankCash"].ToObject<long>().ToString("#,##0,,", CultureInfo.InvariantCulture),
+                            WarningLevel = "110%",
+                            Level = 9000,
+                            Rank = "SNAC Lover",
+                            Avatar = Utils.Utils.GetImageFromUrl(loggedIn.Value["user"]["Avatar"].ToString()),
+                            //AccSig = loggedIn.Value["user"]["FlhookUser"]["loginSignature"].ToObject<uint>(),
+                            //AccCode = loggedIn.Value["user"]["FlhookUser"]["loginCode"].ToObject<uint>(),
+                            PlayerID = loggedIn.Value["user"]["FlhookUser"]["id"].ToString()
+                        };
+
+                        HideLoginWindow();
+                    }
+                }));
             }
         }
 

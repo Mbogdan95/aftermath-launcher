@@ -8,6 +8,7 @@ namespace Ignition.Utils
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Net;
     using System.Net.Http;
@@ -17,6 +18,12 @@ namespace Ignition.Utils
 
     public static class Utils
     {
+        public static async Task<KeyValuePair<HttpStatusCode, JObject>> GetRequest(string url) => await Request(url, null, RequestType.GET);
+        public static async Task<KeyValuePair<HttpStatusCode, JObject>> PutRequest(string url, object obj) => await Request(url, obj, RequestType.PUT);
+        public static async Task<KeyValuePair<HttpStatusCode, JObject>> DeleteRequest(string url, object obj) => await Request(url, obj, RequestType.DELETE);
+        public static async Task<KeyValuePair<HttpStatusCode, JObject>> PatchRequest(string url, object obj) => await Request(url, obj, RequestType.PATCH);
+        public static async Task<KeyValuePair<HttpStatusCode, JObject>> PostRequest(string url, object obj) => await Request(url, obj, RequestType.POST);
+
         public static Bitmap GetImageFromUrl(string url)
         {
             if (Uri.TryCreate(url, UriKind.Absolute, out Uri uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
@@ -46,7 +53,9 @@ namespace Ignition.Utils
         private static async Task<KeyValuePair<HttpStatusCode, JObject>> Request(string url, object obj, RequestType type)
         {
             string rootUrl = Settings.Instance.LauncherData.ApiLocation;
+
             HttpClient client = new HttpClient();
+
             if (!string.IsNullOrWhiteSpace(Settings.Instance.LauncherData.Token))
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Settings.Instance.LauncherData.Token);
@@ -83,22 +92,24 @@ namespace Ignition.Utils
             }
 
             var key = msg.StatusCode;
+
             var value = await msg.Content.ReadAsStringAsync();
 
             var retObj = JsonConvert.DeserializeObject<JObject>(value);
+
             var errors = retObj["errors"].Cast<List<string>>();
+
             if (key != HttpStatusCode.Accepted && key == HttpStatusCode.OK && key != HttpStatusCode.Created)
             {
-                // TODO: show big angry error
+                // TODO: LOG ERROR
+
+                foreach (var error in errors)
+                {
+                    Debug.WriteLine(error);
+                }
             }
 
             return new KeyValuePair<HttpStatusCode, JObject>(key, retObj["result"].ToObject<JObject>());
         }
-
-        public static async Task<KeyValuePair<HttpStatusCode, JObject>> GetRequest(string url) => await Request(url, null, RequestType.GET);
-        public static async Task<KeyValuePair<HttpStatusCode, JObject>> PutRequest(string url, object obj) => await Request(url, obj, RequestType.PUT);
-        public static async Task<KeyValuePair<HttpStatusCode, JObject>> DeleteRequest(string url, object obj) => await Request(url, obj, RequestType.DELETE);
-        public static async Task<KeyValuePair<HttpStatusCode, JObject>> PatchRequest(string url, object obj) => await Request(url, obj, RequestType.PATCH);
-        public static async Task<KeyValuePair<HttpStatusCode, JObject>> PostRequest(string url, object obj) => await Request(url, obj, RequestType.POST);
     }
 }

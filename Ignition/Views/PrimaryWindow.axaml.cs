@@ -11,7 +11,6 @@
             InitializeComponent();
 
             DataContext = new PrimaryWindowViewModel();
-            HasSystemDecorations = false;
             CanResize = false;
 
             //Program.Selector.EnableThemes(this);

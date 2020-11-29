@@ -1,0 +1,30 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        x:Class="Ignition.Views.ProgressWindow"
+        Title="ProgressWindow"
+        WindowStartupLocation="CenterScreen"
+        SystemDecorations="BorderOnly"
+        Width="500"
+				Height="170">
+
+  <Panel Width="500" Height="170" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <Panel.Background>
+      <SolidColorBrush Color="Black" Opacity="0.2"></SolidColorBrush>
+    </Panel.Background>
+    <Border BorderThickness="1" CornerRadius="1" >
+      <Border.BorderBrush>
+        <SolidColorBrush Color="Black"/>
+      </Border.BorderBrush>
+    </Border>
+    <StackPanel Orientation="Vertical" Spacing="5">
+      <TextBlock Text="{Binding ProgressType}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" Foreground="Aquamarine" TextWrapping="Wrap" Margin="2" />
+      <TextBlock Text="{Binding CurrentAction}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12" Foreground="White" TextWrapping="Wrap" MaxWidth="170" Margin="2" />
+      <ProgressBar Value="{Binding Progress}" Margin="20 0 20 0"/>
+      <TextBlock Text="{Binding ProgressString}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10" Foreground="White" TextWrapping="Wrap" Margin="2" />
+      <TextBlock Text="{Binding CurrentFile}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12" FontStyle="Italic" Foreground="White" TextWrapping="Wrap" Margin="2" />
+      <Button Content="{Binding ProgressWindowButtonName}" MaxWidth="50" Margin="0 10 0 0" Command="{Binding ProgressWindowButtonClick}"/>
+    </StackPanel>
+  </Panel>
+</Window>

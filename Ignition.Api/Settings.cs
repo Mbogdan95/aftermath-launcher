@@ -58,7 +58,7 @@ namespace Ignition.Api
                 throw new IOException("Launcher process was at drive root which is forbidden.");
             }
 
-            this.LauncherData = new Data()
+            LauncherData = new Data()
             {
                 AftermathInstall = fileLocation + "/../Game",
                 PatchServer = "https://files.aftermath.space/Launcher/GameData",
@@ -68,7 +68,7 @@ namespace Ignition.Api
                 WindowedMode = false
             };
 
-            Directory.CreateDirectory(this.LauncherData.AftermathInstall);
+            Directory.CreateDirectory(LauncherData.AftermathInstall);
         }
 
         public void SetToken(string token)
@@ -101,9 +101,10 @@ namespace Ignition.Api
 
         public void SetResolution(int w, int h)
         {
-            this.LauncherData.WidthResolution = w;
-            this.LauncherData.HeightResolution = h;
-            this.SaveData();
+            LauncherData.WidthResolution = w;
+            LauncherData.HeightResolution = h;
+
+            SaveData();
         }
 
         public class Data

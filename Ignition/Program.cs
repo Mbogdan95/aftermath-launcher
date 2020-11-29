@@ -24,7 +24,6 @@ namespace Ignition
             {
                 Debug.WriteLine(ex.StackTrace);
                 Debug.WriteLine(ex.Message);
-                // MessageBoxManager.GetMessageBoxStandardWindow("An exception has occured.", "An error has occured within the program and it must terminate.\n\nAdditional Information: " + ex.Message).Show();
             }
         }
 
@@ -33,8 +32,7 @@ namespace Ignition
             => AppBuilder.Configure<App>()
                 .UsePlatformDetect()
                 .UseReactiveUI()
-                .AfterSetup(AfterSetupCallback)
-                .UseReactiveUI();
+                .AfterSetup(AfterSetupCallback);
 
         // Called after setup
         private static void AfterSetupCallback(AppBuilder appBuilder)

@@ -32,7 +32,7 @@ namespace Ignition.Views
 
             if (toggleSwitch.Name == "StayLoggedInToggleSwitch")
             {
-                Settings.Instance.SetStayLoggedIn((bool)toggleSwitch.IsChecked);
+                Settings.Instance.SetToken(string.Empty);
             }
         }
 
@@ -45,16 +45,16 @@ namespace Ignition.Views
         {
             var messageBoxCustomWindow = await MessageBox.Avalonia.MessageBoxManager.GetMessageBoxCustomWindow(new MessageBoxCustomParams
             {
-                Style = Style.Windows,
+                Style = Style.UbuntuLinux,
                 ContentMessage = "All launcher data will be lost. Do you want to continue? NOTE: Launcher will restart automatically \n",
-                ContentTitle = "WARNING",
+                ContentHeader = "WARNING",
                 Icon = Icon.Warning,
                 WindowStartupLocation = WindowStartupLocation.CenterScreen,
-                ShowInCenter = true,
+                ShowInCenter = false,
                 ButtonDefinitions = new[]
                 {
-                    new ButtonDefinition {Name = "Cancel"},
-                    new ButtonDefinition {Name = "OK", Type = ButtonType.Colored}
+                    new ButtonDefinition { Name = "Cancel"},
+                    new ButtonDefinition { Name = "OK", Type = ButtonType.Colored }
                 }
             }).Show();
 

@@ -8,8 +8,9 @@
         xmlns:i="clr-namespace:Projektanker.Icons.Avalonia;assembly=Projektanker.Icons.Avalonia"
         xmlns:reactive="clr-namespace:Avalonia.ReactiveUI;assembly=Avalonia.ReactiveUI"
         x:Class="Ignition.Views.PrimaryWindow"
-        Title="PrimaryWindow"
+        Title="Ignition"
         WindowStartupLocation="CenterScreen"
+        SystemDecorations="BorderOnly"
 				Width="1000"
 				Height="700">
 
@@ -56,6 +57,7 @@
         <TextBlock Text="{Binding GameVersion}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12" Foreground="Gray" FontWeight="SemiBold" TextWrapping="Wrap"/>
       </StackPanel>
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button i:Attached.Icon="fas fa-wrench" Grid.Column="2" Width="25" Height="25" Background="Transparent" BorderThickness="0" Command="{Binding SettingsPanelClick}" />
         <Button i:Attached.Icon="fas fa-window-minimize" Width="25" Height="25" Background="Transparent" BorderThickness="0" Command="{Binding MinimizeButtonClick}"/>
         <Button i:Attached.Icon="fas fa-times-circle" Width="25" Height="25" Background="Transparent" BorderThickness="0" Command="{Binding CloseButtonClick}"/>
       </StackPanel>

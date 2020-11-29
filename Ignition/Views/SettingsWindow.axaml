@@ -8,6 +8,7 @@
         xmlns:i="clr-namespace:Projektanker.Icons.Avalonia;assembly=Projektanker.Icons.Avalonia"
         Title="SettingsWindow"
         WindowStartupLocation="CenterScreen"
+        SystemDecorations="BorderOnly"
         Width="500"
 				Height="300">
 

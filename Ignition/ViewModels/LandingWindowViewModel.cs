@@ -1,41 +1,43 @@
-﻿using System.IO;
-using System.Linq;
-using System.Net;
-using System.Security.Cryptography;
-using System.Threading.Tasks;
-using Avalonia.Controls;
-using MessageBox.Avalonia;
-using MessageBox.Avalonia.DTO;
-using MessageBox.Avalonia.Enums;
-using MessageBox.Avalonia.Models;
-
-namespace Ignition.ViewModels
+﻿namespace Ignition.ViewModels
 {
     using Avalonia;
+    using Avalonia.Controls;
     using Avalonia.Controls.ApplicationLifetimes;
     using Ignition.Api;
     using Ignition.Models;
     using Ignition.Views;
+    using MessageBox.Avalonia;
+    using MessageBox.Avalonia.DTO;
+    using MessageBox.Avalonia.Enums;
+    using MessageBox.Avalonia.Models;
     using ReactiveUI;
     using ReactiveUI.Fody.Helpers;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
+    using System.Linq;
+    using System.Net;
     using System.Reactive;
     using System.Runtime.InteropServices;
+    using System.Security.Cryptography;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     public class LandingWindowViewModel : BaseViewModel
     {
         private PrimaryWindowViewModel primaryWindowViewModel;
+        private Dictionary<uint, KeyValuePair<string, byte[]>> computedHashes { get; set; }
+        private ProgressWindow progressWindow;
+        private CancellationTokenSource cancellationToken = new CancellationTokenSource();
 
         public ReactiveCommand<Unit, Unit> Hangar { get; }
         public ReactiveCommand<Unit, Unit> Achievements { get; }
         public ReactiveCommand<Unit, Unit> Announcements { get; }
         public ReactiveCommand<Unit, Task> Launch { get; }
-        public ReactiveCommand<Unit, Unit> SettingsPanel { get; }
-
         public ReactiveCommand<string, Unit> ModNewsItem { get; }
         public ReactiveCommand<string, Unit> SiriusNewsItem { get; }
+        public ReactiveCommand<Unit, Unit> ProgressWindowButton { get; }
 
         [Reactive]
         public List<NewsItem> SiriusNews { get; set; }
@@ -49,6 +51,18 @@ namespace Ignition.ViewModels
         [Reactive]
         public string GameInstalled { get; set; }
 
+        public string ProgressType { get; set; }
+
+        public string CurrentAction { get; set; }
+
+        public string CurrentFile { get; set; }
+
+        public string ProgressString { get; set; }
+
+        public string ProgressWindowButtonName { get; set; } = "Cancel";
+
+        public double Progress { get; set; }
+
         public LandingWindowViewModel(PrimaryWindowViewModel primaryWindowViewModel)
         {
             this.primaryWindowViewModel = primaryWindowViewModel;
@@ -56,10 +70,10 @@ namespace Ignition.ViewModels
             Hangar = ReactiveCommand.Create(HangarButtonClick);
             Achievements = ReactiveCommand.Create(AchievementsButtonClick);
             Announcements = ReactiveCommand.Create(AnnouncementsButtonClick);
-            SettingsPanel = ReactiveCommand.Create(SettingsPanelClick);
             Launch = ReactiveCommand.Create(LaunchButtonClick);
             ModNewsItem = ReactiveCommand.Create<string>(ModNewsClick);
             SiriusNewsItem = ReactiveCommand.Create<string>(SiriusNewsClick);
+            ProgressWindowButton = ReactiveCommand.Create(ProgressWindowButtonClick);
 
             SiriusNews = primaryWindowViewModel.SiriusNews;
 
@@ -70,7 +84,7 @@ namespace Ignition.ViewModels
             GameInstalled = this.primaryWindowViewModel.GameInstalled ? "Launch" : "Download";
         }
 
-        public static uint StringToFnvHash(string str)
+        private static uint StringToFnvHash(string str)
         {
             const uint fnvPrime32 = 16777619;
             const uint fnvOffset32 = 2166136261;
@@ -87,18 +101,47 @@ namespace Ignition.ViewModels
             return hash;
         }
 
-        private Dictionary<uint, KeyValuePair<string, byte[]>> ComputedHashes { get; set; }
-
-        private async Task PrepareGameUpdates(bool initialDownload)
+        private async Task PrepareGameUpdates(bool initialDownload, CancellationToken cancellationToken)
         {
-            // TODO: Show splash screen upon preperation. Remove when done.
+            if (initialDownload)
+            {
+                ProgressType = "DOWNLOADING GAME...";
+                this.RaisePropertyChanged(nameof(ProgressType));
+            }
+            else
+            {
+                ProgressType = "PATCHING GAME...";
+                this.RaisePropertyChanged(nameof(ProgressType));
+            }
+
+            computedHashes = new Dictionary<uint, KeyValuePair<string, byte[]>>();
+
+            WebClient client = new WebClient
+            {
+                Proxy = null
+            };
+
             string fileDir = Settings.Instance.LauncherData.AftermathInstall;
 
-            ComputedHashes = new Dictionary<uint, KeyValuePair<string, byte[]>>();
             string[] ignoredDirs = new[] { "SAVES", "SCREENSHOTS", "TOOLS", ".GIT", ".GITLAB" };
+
+            var checksums = (await Utils.Utils.GetRequest("/api/game/integrity")).Value.ToObject<Dictionary<uint, KeyValuePair<string, byte[]>>>();
+
+            if (!Directory.Exists(fileDir))
+            {
+                Directory.CreateDirectory(fileDir);
+            }
+
+
+            CurrentAction = "Checking file integrity...";
+            this.RaisePropertyChanged(nameof(CurrentAction));
+
+            double fileIndex;
 
             foreach (string dir in Directory.EnumerateDirectories(fileDir, "*", SearchOption.AllDirectories).Where(x => ignoredDirs.All(dir => !x.ToUpper().Contains(dir))))
             {
+                fileIndex = 1;
+
                 foreach (string file in Directory.GetFiles(dir))
                 {
                     await using FileStream fs = new FileStream(file, FileMode.Open);
@@ -110,25 +153,37 @@ namespace Ignition.ViewModels
                     uint nameHash = StringToFnvHash(relativeDir);
                     try
                     {
-                        ComputedHashes.Add(nameHash, new KeyValuePair<string, byte[]>(relativeDir, hash));
+                        computedHashes.Add(nameHash, new KeyValuePair<string, byte[]>(relativeDir, hash));
                     }
                     catch (Exception ex)
                     {
                         Debug.WriteLine($"Unable to add hash to list. Likely collision.\nHash: {nameHash}\nPath: {relativeDir}\nEx: {ex.Message}");
                     }
+
+                    Progress = fileIndex / Directory.GetFiles(dir).Length * 100;
+                    this.RaisePropertyChanged(nameof(Progress));
+
+                    ProgressString = $"{fileIndex}/{Directory.GetFiles(dir).Length}";
+                    this.RaisePropertyChanged(nameof(ProgressString));
+
+                    CurrentFile = relativeDir;
+                    this.RaisePropertyChanged(nameof(CurrentFile));
+
+                    fileIndex++;
                 }
             }
 
-            // TODO: Delete all files that **DO NOT** match the checksum.
-            // This way all files will always match the remote client.
-            WebClient client = new WebClient();
-            var checksums = (await Utils.Utils.GetRequest("/api/game/integrity")).Value.ToObject<Dictionary<uint, KeyValuePair<string, byte[]>>>();
+            CurrentAction = "Downloading files...";
+            this.RaisePropertyChanged(nameof(CurrentAction));
+
+            fileIndex = 1;
+
             foreach (var checksum in checksums)
             {
                 Directory.CreateDirectory(fileDir + "/" + Path.GetDirectoryName(checksum.Value.Key));
+
                 if (!File.Exists(fileDir + "/" + checksum.Value.Key))
                 {
-                    // ReSharper disable once MethodHasAsyncOverload
                     try
                     {
                         client.DownloadFile(
@@ -142,14 +197,14 @@ namespace Ignition.ViewModels
                 }
                 else
                 {
-                    if (ComputedHashes.Keys.Contains(Convert.ToUInt32(checksum.Key)))
+                    if (computedHashes.Keys.Contains(checksum.Key))
                     {
+                        Debug.WriteLine("Test");
                         continue;
                     }
 
                     try
                     {
-                        // ReSharper disable once MethodHasAsyncOverload
                         client.DownloadFile(
                             new Uri(Settings.Instance.LauncherData.PatchServer + "/" + checksum.Value.Key),
                             fileDir + "/" + checksum.Value.Key);
@@ -159,20 +214,68 @@ namespace Ignition.ViewModels
                         // TODO: Handle
                     }
                 }
+
+                Progress = fileIndex / checksums.Count * 100;
+                this.RaisePropertyChanged(nameof(Progress));
+
+                ProgressString = $"{fileIndex}/{checksums.Count}";
+                this.RaisePropertyChanged(nameof(ProgressString));
+
+                CurrentFile = checksum.Value.Key;
+                this.RaisePropertyChanged(nameof(CurrentFile));
+
+                fileIndex++;
             }
 
-            // TODO: If initial download show message box upon completion.
+            foreach (var computedHash in computedHashes)
+            {
+                if (!checksums.Values.Contains(computedHash.Value))
+                {
+                    File.Delete($"{fileDir}/{computedHash.Value.Key}");
+                }
+            }
+
+            if (initialDownload)
+            {
+                ProgressWindowButtonName = "OK";
+
+                CurrentAction = "Download complete";
+                this.RaisePropertyChanged(nameof(CurrentAction));
+
+                ProgressString = string.Empty;
+                this.RaisePropertyChanged(nameof(ProgressString));
+
+                CurrentFile = string.Empty;
+                this.RaisePropertyChanged(nameof(CurrentFile));
+            }
         }
 
         private async Task LaunchButtonClick()
         {
-            if (!this.primaryWindowViewModel.GameInstalled)
+            progressWindow = new ProgressWindow
             {
-                await PrepareGameUpdates(true);
+                DataContext = this
+            };
+
+            if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            {
+                progressWindow.ShowDialog(desktopLifetime.MainWindow);
+            }
+            else if (Application.Current.ApplicationLifetime is ISingleViewApplicationLifetime singleView)
+            {
+                progressWindow.ShowDialog((Window)singleView.MainView);
+            }
+
+            if (!primaryWindowViewModel.GameInstalled)
+            {
+                Task.Run(new Action(async () => await PrepareGameUpdates(true, cancellationToken.Token))).Wait();
                 return;
             }
 
-            await PrepareGameUpdates(false);
+            await Task.Factory.StartNew(() => PrepareGameUpdates(false, cancellationToken.Token).Wait());
+
+            progressWindow.Close();
+            Debug.WriteLine("Test");
 
             List<string> exeArguments = new List<string>()
             {
@@ -186,59 +289,85 @@ namespace Ignition.ViewModels
 
             if (Settings.Instance.LauncherData.DefaultDesktopResolution)
             {
-#if _WINDOWS
-                Process p = new Process();
-                p.StartInfo.UseShellExecute = false;
-                p.StartInfo.RedirectStandardOutput = true;
-                p.StartInfo.FileName = "wmic";
-                p.StartInfo.Arguments = "desktopmonitor get screenheight, screenwidth";
-                p.StartInfo.CreateNoWindow = true;
-                p.Start();
-                string output = p.StandardOutput.ReadToEnd();
-                p.WaitForExit();
-
-                var match = System.Text.RegularExpressions.Regex.Match(output, @".*?\n(\d+).*?(\d+)");
-                int w = int.Parse(match.Groups[1].Value);
-                int h = int.Parse(match.Groups[2].Value);
-#else
-                // Use xrandr to get size of screen located at offset (0,0).
-                Process p = new Process();
-                p.StartInfo.UseShellExecute = false;
-                p.StartInfo.RedirectStandardOutput = true;
-                p.StartInfo.FileName = "xrandr";
-                p.StartInfo.CreateNoWindow = true;
-                p.Start();
-                string output = p.StandardOutput.ReadToEnd();
-                p.WaitForExit();
-                if (output.Contains("'xrandr' not found"))
+                int w = 0;
+                int h = 0;
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    // Handle
+                    Process p = new Process();
+                    p.StartInfo.UseShellExecute = false;
+                    p.StartInfo.RedirectStandardOutput = true;
+                    p.StartInfo.FileName = "wmic";
+                    p.StartInfo.Arguments = "desktopmonitor get screenheight, screenwidth";
+                    p.StartInfo.CreateNoWindow = true;
+                    p.Start();
+                    string output = p.StandardOutput.ReadToEnd();
+                    p.WaitForExit();
+
+                    var match = System.Text.RegularExpressions.Regex.Match(output, @".*?\n(\d+).*?(\d+)");
+                    w = int.Parse(match.Groups[1].Value);
+                    h = int.Parse(match.Groups[2].Value);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    // Use xrandr to get size of screen located at offset (0,0).
+                    Process p = new Process();
+                    p.StartInfo.UseShellExecute = false;
+                    p.StartInfo.RedirectStandardOutput = true;
+                    p.StartInfo.FileName = "xrandr";
+                    p.StartInfo.CreateNoWindow = true;
+                    p.Start();
+                    string output = p.StandardOutput.ReadToEnd();
+                    p.WaitForExit();
+
+                    if (output.Contains("'xrandr' not found"))
+                    {
+                        // Handle
+                    }
+                    else
+                    {
+                        var match = System.Text.RegularExpressions.Regex.Match(output, @"(\d+)x(\d+)\+0\+0");
+                        w = int.Parse(match.Groups[1].Value);
+                        h = int.Parse(match.Groups[2].Value);
+                    }
                 }
 
-                else
-                {
-                    var match = System.Text.RegularExpressions.Regex.Match(output, @"(\d+)x(\d+)\+0\+0");
-                    int w = int.Parse(match.Groups[1].Value);
-                    int h = int.Parse(match.Groups[2].Value);
-                }
-#endif
                 Settings.Instance.SetResolution(w, h);
-                // Debug.WriteLine($"{devMode.dmPelsWidth} x {devMode.dmPelsHeight}");
             }
             else
             {
-                // Debug.WriteLine($"{Settings.Instance.LauncherData.WidthResolution} x {Settings.Instance.LauncherData.HeightResolution}");
             }
 
-            // TODO: Make sure player id, player sig, and player code are passed into the game correctly.
-            // -PlayerId=
-            // -AccCode=
-            // -AccSig=
-            Process[] pname = Process.GetProcessesByName("freelancer");
-            if (pname.Length == 0)
+            if (!string.IsNullOrEmpty(primaryWindowViewModel.LoggedUser.PlayerID))
             {
-                // TODO: Hide splash screen, and unhardcode path. Should be relative to the 
-                Process.Start(@"D:\Aftermath\EXE\Freelancer.exe", string.Join(" ", exeArguments.ToArray()));
+                exeArguments.Add($"-PlayerId-{primaryWindowViewModel.LoggedUser.PlayerID}");
+            }
+            else
+            {
+                return;
+            }
+
+            if (primaryWindowViewModel.LoggedUser.AccCode != 0)
+            {
+                exeArguments.Add($"-AccCode-{primaryWindowViewModel.LoggedUser.AccCode}");
+            }
+            else
+            {
+                return;
+            }
+
+            if (primaryWindowViewModel.LoggedUser.AccSig != 0)
+            {
+                exeArguments.Add($"-AccSig-{primaryWindowViewModel.LoggedUser.AccSig}");
+            }
+            else
+            {
+                return;
+            }
+
+            Process[] processesNames = Process.GetProcessesByName("freelancer");
+            if (processesNames.Length == 0)
+            {
+                Process.Start($@"{Settings.Instance.LauncherData.AftermathInstall}\EXE\Freelancer.exe", string.Join(" ", exeArguments.ToArray()));
             }
             else
             {
@@ -250,9 +379,8 @@ namespace Ignition.ViewModels
                 {
                     Style = Style.UbuntuLinux,
                     ContentMessage = "A copy of Freelancer appears to already be running. Would you like to terminate this running process?\n",
-                    ContentTitle = "Freelancer Already Running?",
+                    ContentHeader = "Freelancer Already Running?",
                     Icon = Icon.Warning,
-                    WindowStartupLocation = WindowStartupLocation.CenterScreen,
                     ShowInCenter = true,
                     ButtonDefinitions = new[]
                     {
@@ -264,37 +392,18 @@ namespace Ignition.ViewModels
 
                 if (result == cont)
                 {
-                    // TODO: Start Freelancer.
+                    Process.Start($@"{Settings.Instance.LauncherData.AftermathInstall}\EXE\Freelancer.exe", string.Join(" ", exeArguments.ToArray()));
                 }
                 else if (result == terminate)
                 {
-                    // TODO: Termiante Freelancer process. Cancel if lacking permissions to do so.
+                    processesNames[0].Kill();
+
+                    Process.Start($@"{Settings.Instance.LauncherData.AftermathInstall}\EXE\Freelancer.exe", string.Join(" ", exeArguments.ToArray()));
                 }
                 else
                 {
                     return;
                 }
-            }
-
-            //TODO: Make sure that it pull the ID successfully or not launch
-        }
-
-        private void StartFreelancer()
-        {
-
-        }
-
-        private void SettingsPanelClick()
-        {
-            SettingsWindow settingsWindow = new SettingsWindow();
-
-            if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
-            {
-                settingsWindow.ShowDialog(desktopLifetime.MainWindow);
-            }
-            else if (Application.Current.ApplicationLifetime is ISingleViewApplicationLifetime singleView)
-            {
-                settingsWindow.ShowDialog((Avalonia.Controls.Window)singleView.MainView);
             }
         }
 
@@ -373,41 +482,16 @@ namespace Ignition.ViewModels
             }
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        struct DEVMODE
+        private void ProgressWindowButtonClick()
         {
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 0x20)]
-            public string dmDeviceName;
-            public short dmSpecVersion;
-            public short dmDriverVersion;
-            public short dmSize;
-            public short dmDriverExtra;
-            public int dmFields;
-            public int dmPositionX;
-            public int dmPositionY;
-            public int dmDisplayOrientation;
-            public int dmDisplayFixedOutput;
-            public short dmColor;
-            public short dmDuplex;
-            public short dmYResolution;
-            public short dmTTOption;
-            public short dmCollate;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 0x20)]
-            public string dmFormName;
-            public short dmLogPixels;
-            public int dmBitsPerPel;
-            public int dmPelsWidth;
-            public int dmPelsHeight;
-            public int dmDisplayFlags;
-            public int dmDisplayFrequency;
-            public int dmICMMethod;
-            public int dmICMIntent;
-            public int dmMediaType;
-            public int dmDitherType;
-            public int dmReserved1;
-            public int dmReserved2;
-            public int dmPanningWidth;
-            public int dmPanningHeight;
+            if (ProgressWindowButtonName == "Cancel")
+            {
+                cancellationToken.Cancel();
+            }
+            else
+            {
+                progressWindow.Close();
+            }
         }
     }
 }
