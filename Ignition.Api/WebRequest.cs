@@ -1,22 +1,20 @@
-﻿using System.Linq;
-
-namespace Ignition.Utils
+﻿namespace Ignition.Api
 {
-    using Avalonia.Media.Imaging;
-    using Ignition.Api;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Text;
     using System.Threading.Tasks;
+    using Avalonia.Media.Imaging;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
 
-    public static class Utils
+    public static class WebRequest
     {
         public static async Task<KeyValuePair<HttpStatusCode, JObject>> GetRequest(string url) => await Request(url, null, RequestType.GET);
         public static async Task<KeyValuePair<HttpStatusCode, JObject>> PutRequest(string url, object obj) => await Request(url, obj, RequestType.PUT);
@@ -62,6 +60,8 @@ namespace Ignition.Utils
             }
 
             StringContent stringContent = obj is null ? new StringContent("{}", Encoding.UTF8, "application/json") : new StringContent(JsonConvert.SerializeObject(obj), Encoding.UTF8, "application/json");
+
+            // TODO: Try Catch for HttpRequestException if no internet or server down
 
             HttpResponseMessage msg = null;
             switch (type)

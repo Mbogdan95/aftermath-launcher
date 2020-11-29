@@ -17,7 +17,6 @@
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
-    using System.Net;
     using System.Reactive;
     using System.Runtime.InteropServices;
     using System.Security.Cryptography;
@@ -84,24 +83,7 @@
             GameInstalled = this.primaryWindowViewModel.GameInstalled ? "Launch" : "Download";
         }
 
-        private static uint StringToFnvHash(string str)
-        {
-            const uint fnvPrime32 = 16777619;
-            const uint fnvOffset32 = 2166136261;
-
-            IEnumerable<byte> bytesToHash = str.ToCharArray().Select(Convert.ToByte);
-            uint hash = fnvOffset32;
-
-            foreach (var chunk in bytesToHash)
-            {
-                hash ^= chunk;
-                hash *= fnvPrime32;
-            }
-
-            return hash;
-        }
-
-        private async Task PrepareGameUpdates(bool initialDownload, CancellationToken cancellationToken)
+        private async Task PrepareGameUpdates(bool initialDownload)
         {
             if (initialDownload)
             {
@@ -114,126 +96,25 @@
                 this.RaisePropertyChanged(nameof(ProgressType));
             }
 
-            computedHashes = new Dictionary<uint, KeyValuePair<string, byte[]>>();
-
-            WebClient client = new WebClient
+            void CurrentActionChanged(string str)
             {
-                Proxy = null
-            };
-
-            string fileDir = Settings.Instance.LauncherData.AftermathInstall;
-
-            string[] ignoredDirs = new[] { "SAVES", "SCREENSHOTS", "TOOLS", ".GIT", ".GITLAB" };
-
-            var checksums = (await Utils.Utils.GetRequest("/api/game/integrity")).Value.ToObject<Dictionary<uint, KeyValuePair<string, byte[]>>>();
-
-            if (!Directory.Exists(fileDir))
-            {
-                Directory.CreateDirectory(fileDir);
+                CurrentAction = str;
+                this.RaisePropertyChanged(nameof(CurrentAction));
             }
 
-
-            CurrentAction = "Checking file integrity...";
-            this.RaisePropertyChanged(nameof(CurrentAction));
-
-            double fileIndex;
-
-            foreach (string dir in Directory.EnumerateDirectories(fileDir, "*", SearchOption.AllDirectories).Where(x => ignoredDirs.All(dir => !x.ToUpper().Contains(dir))))
+            void CurrentProgressChanged(double val, string progressString, string currentFile)
             {
-                fileIndex = 1;
-
-                foreach (string file in Directory.GetFiles(dir))
-                {
-                    await using FileStream fs = new FileStream(file, FileMode.Open);
-                    await using BufferedStream bs = new BufferedStream(fs, 10 * 1024);
-                    using SHA1Managed sha1 = new SHA1Managed();
-
-                    byte[] hash = sha1.ComputeHash(bs);
-                    string relativeDir = Path.GetRelativePath(fileDir, file);
-                    uint nameHash = StringToFnvHash(relativeDir);
-                    try
-                    {
-                        computedHashes.Add(nameHash, new KeyValuePair<string, byte[]>(relativeDir, hash));
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"Unable to add hash to list. Likely collision.\nHash: {nameHash}\nPath: {relativeDir}\nEx: {ex.Message}");
-                    }
-
-                    Progress = fileIndex / Directory.GetFiles(dir).Length * 100;
-                    this.RaisePropertyChanged(nameof(Progress));
-
-                    ProgressString = $"{fileIndex}/{Directory.GetFiles(dir).Length}";
-                    this.RaisePropertyChanged(nameof(ProgressString));
-
-                    CurrentFile = relativeDir;
-                    this.RaisePropertyChanged(nameof(CurrentFile));
-
-                    fileIndex++;
-                }
-            }
-
-            CurrentAction = "Downloading files...";
-            this.RaisePropertyChanged(nameof(CurrentAction));
-
-            fileIndex = 1;
-
-            foreach (var checksum in checksums)
-            {
-                Directory.CreateDirectory(fileDir + "/" + Path.GetDirectoryName(checksum.Value.Key));
-
-                if (!File.Exists(fileDir + "/" + checksum.Value.Key))
-                {
-                    try
-                    {
-                        client.DownloadFile(
-                            new Uri(Settings.Instance.LauncherData.PatchServer + "/" + checksum.Value.Key),
-                            fileDir + "/" + checksum.Value.Key);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex.Message);
-                    }
-                }
-                else
-                {
-                    if (computedHashes.Keys.Contains(checksum.Key))
-                    {
-                        Debug.WriteLine("Test");
-                        continue;
-                    }
-
-                    try
-                    {
-                        client.DownloadFile(
-                            new Uri(Settings.Instance.LauncherData.PatchServer + "/" + checksum.Value.Key),
-                            fileDir + "/" + checksum.Value.Key);
-                    }
-                    catch
-                    {
-                        // TODO: Handle
-                    }
-                }
-
-                Progress = fileIndex / checksums.Count * 100;
+                Progress = val;
                 this.RaisePropertyChanged(nameof(Progress));
 
-                ProgressString = $"{fileIndex}/{checksums.Count}";
+                ProgressString = progressString;
                 this.RaisePropertyChanged(nameof(ProgressString));
 
-                CurrentFile = checksum.Value.Key;
+                CurrentFile = currentFile;
                 this.RaisePropertyChanged(nameof(CurrentFile));
-
-                fileIndex++;
             }
 
-            foreach (var computedHash in computedHashes)
-            {
-                if (!checksums.Values.Contains(computedHash.Value))
-                {
-                    File.Delete($"{fileDir}/{computedHash.Value.Key}");
-                }
-            }
+            await Downloader.IntegrityCheck(CurrentActionChanged, CurrentProgressChanged, this.cancellationToken);
 
             if (initialDownload)
             {
@@ -268,11 +149,11 @@
 
             if (!primaryWindowViewModel.GameInstalled)
             {
-                Task.Run(new Action(async () => await PrepareGameUpdates(true, cancellationToken.Token))).Wait();
+                Task.Run(new Action(async () => await PrepareGameUpdates(true))).Wait();
                 return;
             }
 
-            await Task.Factory.StartNew(() => PrepareGameUpdates(false, cancellationToken.Token).Wait());
+            await Task.Factory.StartNew(() => PrepareGameUpdates(false).Wait());
 
             progressWindow.Close();
             Debug.WriteLine("Test");
@@ -488,10 +369,7 @@
             {
                 cancellationToken.Cancel();
             }
-            else
-            {
-                progressWindow.Close();
-            }
+            progressWindow.Close();
         }
     }
 }

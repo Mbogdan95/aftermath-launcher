@@ -1,16 +1,5 @@
 ﻿namespace Ignition.ViewModels
 {
-    using Avalonia;
-    using Avalonia.Controls;
-    using Avalonia.Controls.ApplicationLifetimes;
-    using Ignition.Api;
-    using Ignition.Models;
-    using Ignition.Utils;
-    using Ignition.Views;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
-    using ReactiveUI;
-    using ReactiveUI.Fody.Helpers;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -18,6 +7,17 @@
     using System.Reactive;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Avalonia;
+    using Avalonia.Controls;
+    using Avalonia.Controls.ApplicationLifetimes;
+    using Ignition.Api;
+    using Ignition.Models;
+    using Ignition.Views;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
+    using ReactiveUI;
+    using ReactiveUI.Fody.Helpers;
+    using WebRequest = Api.WebRequest;
 
     public class PrimaryWindowViewModel : BaseViewModel
     {
@@ -141,7 +141,7 @@
                 foreach (JObject item in JsonConvert.DeserializeObject<JArray>(jsonString).ToObject<List<JObject>>())
                 {
                     // Create news item
-                    NewsItem newsItem = new NewsItem() { Title = item["title"].ToString(), Description = "  " + item["subtitle"].ToString(), Date = item["date"].ToString(), Image = Utils.GetImageFromUrl(item["imageUrl"].ToString()), NewsUrl = item["url"].ToString() };
+                    NewsItem newsItem = new NewsItem() { Title = item["title"].ToString(), Description = "  " + item["subtitle"].ToString(), Date = item["date"].ToString(), Image = WebRequest.GetImageFromUrl(item["imageUrl"].ToString()), NewsUrl = item["url"].ToString() };
 
                     // Add news item to list
                     SiriusNews.Add(newsItem);

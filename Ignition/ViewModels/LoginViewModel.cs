@@ -1,20 +1,21 @@
-﻿namespace Ignition.ViewModels
+﻿using System.Net;
+
+namespace Ignition.ViewModels
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Dynamic;
+    using System.Globalization;
+    using System.Reactive;
+    using System.Runtime.InteropServices;
+    using System.Threading.Tasks;
     using Avalonia.Media;
     using Ignition.Api;
     using Ignition.Models;
     using Newtonsoft.Json.Linq;
     using ReactiveUI;
     using ReactiveUI.Fody.Helpers;
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Dynamic;
-    using System.Globalization;
-    using System.Net;
-    using System.Reactive;
-    using System.Runtime.InteropServices;
-    using System.Threading.Tasks;
 
     public class LoginViewModel : BaseViewModel
     {
@@ -73,7 +74,7 @@
             dynamicObject.Email = Email;
             dynamicObject.Password = Password;
 
-            KeyValuePair<HttpStatusCode, JObject> result = await Utils.Utils.PutRequest("/api/auth/login", dynamicObject);
+            KeyValuePair<HttpStatusCode, JObject> result = await WebRequest.PutRequest("/api/auth/login", dynamicObject);
 
             if (result.Key is HttpStatusCode.OK)
             {
@@ -88,7 +89,7 @@
                     WarningLevel = "110%",
                     Level = 9000,
                     Rank = "SNAC Lover",
-                    Avatar = Utils.Utils.GetImageFromUrl(result.Value["Avatar"].ToString()),
+                    Avatar = WebRequest.GetImageFromUrl(result.Value["Avatar"].ToString()),
                     //AccSig = result.Value["FlhookUser"]["loginSignature"].ToObject<uint>(),
                     //AccCode = result.Value["FlhookUser"]["loginCode"].ToObject<uint>(),
                     PlayerID = result.Value["FlhookUser"]["id"].ToString()
@@ -112,7 +113,7 @@
             {
                 Task.Run(new Action(async () =>
                 {
-                    var loggedIn = await Utils.Utils.GetRequest("/api/auth/");
+                    var loggedIn = await WebRequest.GetRequest("/api/auth/");
                     if (loggedIn.Key == HttpStatusCode.OK)
                     {
                         primaryWindowViewModel.LoggedUser = new User()
@@ -122,7 +123,7 @@
                             WarningLevel = "110%",
                             Level = 9000,
                             Rank = "SNAC Lover",
-                            Avatar = Utils.Utils.GetImageFromUrl(loggedIn.Value["user"]["Avatar"].ToString()),
+                            Avatar = WebRequest.GetImageFromUrl(loggedIn.Value["user"]["Avatar"].ToString()),
                             //AccSig = loggedIn.Value["user"]["FlhookUser"]["loginSignature"].ToObject<uint>(),
                             //AccCode = loggedIn.Value["user"]["FlhookUser"]["loginCode"].ToObject<uint>(),
                             PlayerID = loggedIn.Value["user"]["FlhookUser"]["id"].ToString()

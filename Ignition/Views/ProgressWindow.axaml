@@ -6,10 +6,10 @@
         Title="ProgressWindow"
         WindowStartupLocation="CenterScreen"
         SystemDecorations="BorderOnly"
-        Width="500"
-				Height="170">
+        Width="700"
+				Height="200">
 
-  <Panel Width="500" Height="170" HorizontalAlignment="Center" VerticalAlignment="Center">
+  <Panel Width="700" Height="200" HorizontalAlignment="Center" VerticalAlignment="Center">
     <Panel.Background>
       <SolidColorBrush Color="Black" Opacity="0.2"></SolidColorBrush>
     </Panel.Background>
