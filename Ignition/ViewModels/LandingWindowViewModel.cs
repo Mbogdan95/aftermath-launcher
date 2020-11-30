@@ -242,6 +242,20 @@
                 }
                 else
                 {
+                    var messageBoxCustomWindow = await MessageBoxManager.GetMessageBoxCustomWindow(new MessageBoxCustomParams
+                    {
+                        Style = Style.UbuntuLinux,
+                        ContentMessage = "Unable to generate AccSig and AccCode \n",
+                        ContentHeader = "WARNING",
+                        Icon = Icon.Warning,
+                        WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                        ShowInCenter = false,
+                        ButtonDefinitions = new[]
+                        {
+                            new ButtonDefinition { Name = "OK", Type = ButtonType.Colored }
+                        }
+                    }).Show();
+
                     Logger.WriteLog("Unable to generate AccCode and AccSig");
 
                     return;

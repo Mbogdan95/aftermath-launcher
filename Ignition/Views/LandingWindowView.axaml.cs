@@ -2,12 +2,15 @@
 {
     using Avalonia.Controls;
     using Avalonia.Markup.Xaml;
+    using System.Threading;
 
     public class LandingWindowView : UserControl
     {
         private Carousel carousel;
         private Button previousItemButton;
         private Button nextItemButton;
+
+        private Timer timer;
 
         public LandingWindowView()
         {

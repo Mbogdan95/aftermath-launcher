@@ -30,7 +30,7 @@
       <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 -60 0 0" Width="400" Height="300">
         <Button i:Attached.Icon="fas fa-chevron-left" Name="PreviousItem" Width="30" Height="30" Background="Transparent" Foreground="Black" BorderThickness="0"/>
 
-        <Carousel Name="carousel" Items="{Binding ModNews}" IsEnabled="{Binding isCarouselEnabled}">
+        <Carousel Name="carousel" Items="{Binding ModNews}" IsEnabled="{Binding isCarouselEnabled}" Margin="0 -50 0 0" >
 
           <Carousel.ItemTemplate>
             <DataTemplate>
@@ -61,7 +61,7 @@
         <Button i:Attached.Icon="fas fa-chevron-right" Name="NextItem" Width="30" Height="30" Background="Transparent" Foreground="Black" BorderThickness="0"/>
       </StackPanel>
 
-      <ListBox Items="{Binding SiriusNews}" Grid.Column="2" Height="450" Margin="100 0 0 0" HorizontalAlignment="Left">
+      <ListBox Items="{Binding SiriusNews}" Grid.Column="2" Height="450" Margin="100 30 0 0" HorizontalAlignment="Left">
         <ListBox.Background>
           <SolidColorBrush Opacity="0"/>
         </ListBox.Background>

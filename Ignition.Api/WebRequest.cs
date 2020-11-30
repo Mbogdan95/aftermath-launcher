@@ -15,11 +15,11 @@
 
     public static class WebRequest
     {
-        public static async Task<KeyValuePair<HttpStatusCode, JObject>> GetRequest(string url) => await Request(url, null, RequestType.GET);
-        public static async Task<KeyValuePair<HttpStatusCode, JObject>> PutRequest(string url, object obj) => await Request(url, obj, RequestType.PUT);
-        public static async Task<KeyValuePair<HttpStatusCode, JObject>> DeleteRequest(string url, object obj) => await Request(url, obj, RequestType.DELETE);
-        public static async Task<KeyValuePair<HttpStatusCode, JObject>> PatchRequest(string url, object obj) => await Request(url, obj, RequestType.PATCH);
-        public static async Task<KeyValuePair<HttpStatusCode, JObject>> PostRequest(string url, object obj) => await Request(url, obj, RequestType.POST);
+        public static async Task<KeyValuePair<HttpStatusCode, JToken>> GetRequest(string url) => await Request(url, null, RequestType.GET);
+        public static async Task<KeyValuePair<HttpStatusCode, JToken>> PutRequest(string url, object obj) => await Request(url, obj, RequestType.PUT);
+        public static async Task<KeyValuePair<HttpStatusCode, JToken>> DeleteRequest(string url, object obj) => await Request(url, obj, RequestType.DELETE);
+        public static async Task<KeyValuePair<HttpStatusCode, JToken>> PatchRequest(string url, object obj) => await Request(url, obj, RequestType.PATCH);
+        public static async Task<KeyValuePair<HttpStatusCode, JToken>> PostRequest(string url, object obj) => await Request(url, obj, RequestType.POST);
 
         public static Bitmap GetImageFromUrl(string url)
         {
@@ -47,7 +47,7 @@
             PATCH
         }
 
-        private static async Task<KeyValuePair<HttpStatusCode, JObject>> Request(string url, object obj, RequestType type)
+        private static async Task<KeyValuePair<HttpStatusCode, JToken>> Request(string url, object obj, RequestType type)
         {
             string rootUrl = Settings.Instance.LauncherData.ApiLocation;
 
@@ -109,7 +109,7 @@
                     }
                 }
 
-                return new KeyValuePair<HttpStatusCode, JObject>(key, retObj["result"].ToObject<JObject>());
+                return new KeyValuePair<HttpStatusCode, JToken>(key, retObj["result"].ToObject<JToken>());
             }
             catch (Exception ex)
             {

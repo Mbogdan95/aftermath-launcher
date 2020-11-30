@@ -3,6 +3,7 @@
     using Avalonia;
     using Avalonia.Controls;
     using Avalonia.Controls.ApplicationLifetimes;
+    using Avalonia.Media.Imaging;
     using Ignition.Api;
     using Ignition.Models;
     using Ignition.Views;
@@ -13,11 +14,13 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
     using System.Net;
     using System.Reactive;
     using System.Reflection;
     using System.Threading.Tasks;
     using WebRequest = Api.WebRequest;
+
 
     public class PrimaryWindowViewModel : BaseViewModel
     {
@@ -26,11 +29,11 @@
 
         // Variable that stores the game version
         [Reactive]
-        public string GameVersion { get;  set; }
+        public string GameVersion { get; set; }
 
         // Variable that stores the state of the game INSTALLED/NOT INSTALLED
         [Reactive]
-        public bool GameInstalled { get;  set; }
+        public bool GameInstalled { get; set; }
 
         // Variables for buttons
         public ReactiveCommand<Unit, Unit> Close { get; }
@@ -125,33 +128,51 @@
         /// <summary>
         /// Load news from URL
         /// </summary>
-        private void LoadNews()
+        private async Task LoadNews()
         {
             try
             {
-                // Start task to not freeze UI
-                Task.Factory.StartNew(() =>
+                // Initialize variables
+                SiriusNews = new List<NewsItem>();
+                ModNews = new List<NewsItem>();
+
+                using WebClient webClient = new WebClient();
+
+                // Get JSON string from link
+                string jsonString = webClient.DownloadString(Settings.Instance.LauncherData.NewsLocation);
+
+                var blogs = await WebRequest.GetRequest("/api/blog?page=1&count=3");
+
+                foreach (var item in blogs.Value)
                 {
-                    // Initialize variables
-                    SiriusNews = new List<NewsItem>();
-                    ModNews = new List<NewsItem>();
+                    byte[] bytes = Convert.FromBase64String(item["Banner"]["data"].ToString());
 
-                    using WebClient webClient = new WebClient();
-
-                    // Get JSON string from link
-                    string jsonString = webClient.DownloadString(Settings.Instance.LauncherData.NewsLocation);
-
-                    // Loop through each JObject
-                    foreach (JObject item in JsonConvert.DeserializeObject<JArray>(jsonString).ToObject<List<JObject>>())
+                    Bitmap image;
+                    using (MemoryStream ms = new MemoryStream(bytes))
                     {
-                        // Create news item
-                        NewsItem newsItem = new NewsItem() { Title = item["title"].ToString(), Description = "  " + item["subtitle"].ToString(), Date = item["date"].ToString(), Image = WebRequest.GetImageFromUrl(item["imageUrl"].ToString()), NewsUrl = item["url"].ToString() };
-
-                        // Add news item to list
-                        SiriusNews.Add(newsItem);
-                        ModNews.Add(newsItem);
+                        image = new Bitmap(ms);
                     }
-                }).Wait();
+
+                    NewsItem newsItem = new NewsItem()
+                    {
+                        Title = item["Title"].ToString(),
+                        Description = item["Description"].ToString(),
+                        Date = DateTime.Parse(item["CreationDate"].ToString()).ToString(),
+                        Image = image,
+                        NewsUrl = $"https://forums.aftermath.space/blogs/{item["Id"]}"
+                    };
+
+                    ModNews.Add(newsItem);
+                }
+
+                // Loop through each JObject
+                foreach (JObject item in JsonConvert.DeserializeObject<JArray>(jsonString).ToObject<List<JObject>>())
+                {
+                    // Create news item
+                    NewsItem newsItem = new NewsItem() { Title = item["title"].ToString(), Description = "  " + item["subtitle"].ToString(), Date = item["date"].ToString(), Image = WebRequest.GetImageFromUrl(item["imageUrl"].ToString()), NewsUrl = item["url"].ToString() };
+
+                    SiriusNews.Add(newsItem);
+                }
             }
             catch (Exception ex)
             {
