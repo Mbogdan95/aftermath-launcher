@@ -15,6 +15,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Net;
     using System.Reactive;
     using System.Runtime.InteropServices;
     using System.Threading;
@@ -222,31 +223,29 @@
             {
             }
 
-            if (!string.IsNullOrEmpty(primaryWindowViewModel.LoggedUser.PlayerID))
-            {
-                exeArguments.Add($"-PlayerId-{primaryWindowViewModel.LoggedUser.PlayerID}");
-            }
-            else
-            {
-                return;
-            }
-
-            if (primaryWindowViewModel.LoggedUser.AccCode != 0)
+            if (!string.IsNullOrEmpty(primaryWindowViewModel.LoggedUser.AccCode) && !string.IsNullOrEmpty(primaryWindowViewModel.LoggedUser.AccSig))
             {
                 exeArguments.Add($"-AccCode-{primaryWindowViewModel.LoggedUser.AccCode}");
-            }
-            else
-            {
-                return;
-            }
-
-            if (primaryWindowViewModel.LoggedUser.AccSig != 0)
-            {
                 exeArguments.Add($"-AccSig-{primaryWindowViewModel.LoggedUser.AccSig}");
             }
             else
             {
-                return;
+                var result = await Api.WebRequest.PutRequest("/api/game/generate", null);
+
+                if (result.Key == HttpStatusCode.OK)
+                {
+                    primaryWindowViewModel.LoggedUser.AccCode = result.Value["user"]["FlhookUser"]["loginSignature"]?.ToString();
+                    primaryWindowViewModel.LoggedUser.AccSig = result.Value["user"]["FlhookUser"]["loginCode"]?.ToString();
+
+                    exeArguments.Add($"-AccCode-{primaryWindowViewModel.LoggedUser.AccCode}");
+                    exeArguments.Add($"-AccSig-{primaryWindowViewModel.LoggedUser.AccSig}");
+                }
+                else
+                {
+                    Logger.WriteLog("Unable to generate AccCode and AccSig");
+
+                    return;
+                }
             }
 
             Process[] processesNames = Process.GetProcessesByName("freelancer");

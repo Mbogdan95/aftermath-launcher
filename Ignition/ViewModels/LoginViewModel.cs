@@ -108,9 +108,9 @@ namespace Ignition.ViewModels
                     Level = 9000,
                     Rank = "SNAC Lover",
                     Avatar = WebRequest.GetImageFromUrl(result.Value["Avatar"].ToString()),
-                    //AccSig = result.Value["FlhookUser"]["loginSignature"].ToObject<uint>(),
-                    //AccCode = result.Value["FlhookUser"]["loginCode"].ToObject<uint>(),
-                    PlayerID = result.Value["FlhookUser"]["id"].ToString()
+                    AccSig = result.Value["FlhookUser"]["loginSignature"]?.ToString(),
+                    AccCode = result.Value["FlhookUser"]["loginCode"]?.ToString(),
+                    PlayerID = result.Value["FlhookUser"]["id"].ToObject<long>()
                 };
 
                 HideLoginWindow();
@@ -150,9 +150,9 @@ namespace Ignition.ViewModels
                             Level = 9000,
                             Rank = "SNAC Lover",
                             Avatar = WebRequest.GetImageFromUrl(loggedIn.Value["user"]["Avatar"].ToString()),
-                            //AccSig = loggedIn.Value["user"]["FlhookUser"]["loginSignature"].ToObject<uint>(),
-                            //AccCode = loggedIn.Value["user"]["FlhookUser"]["loginCode"].ToObject<uint>(),
-                            PlayerID = loggedIn.Value["user"]["FlhookUser"]["id"].ToString()
+                            AccSig = loggedIn.Value["user"]["FlhookUser"]["loginSignature"]?.ToString(),
+                            AccCode = loggedIn.Value["user"]["FlhookUser"]["loginCode"]?.ToString(),
+                            PlayerID = loggedIn.Value["user"]["FlhookUser"]["id"].ToObject<long>()
                         };
 
                         HideLoginWindow();
