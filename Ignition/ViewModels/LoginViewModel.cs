@@ -5,11 +5,9 @@ namespace Ignition.ViewModels
     using Avalonia.Media;
     using Ignition.Api;
     using Ignition.Models;
-    using Newtonsoft.Json.Linq;
     using ReactiveUI;
     using ReactiveUI.Fody.Helpers;
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Dynamic;
     using System.Globalization;
@@ -92,7 +90,7 @@ namespace Ignition.ViewModels
             dynamicObject.Email = Email;
             dynamicObject.Password = Password;
 
-            KeyValuePair<HttpStatusCode, JObject> result = await WebRequest.PutRequest("/api/auth/login", dynamicObject);
+            var result = await WebRequest.PutRequest("/api/auth/login", dynamicObject);
 
             if (result.Key == HttpStatusCode.OK)
             {

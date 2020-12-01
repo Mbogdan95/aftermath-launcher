@@ -27,6 +27,7 @@
         private Dictionary<uint, KeyValuePair<string, byte[]>> computedHashes { get; set; }
         private ProgressWindow progressWindow;
         private CancellationTokenSource cancellationToken = new CancellationTokenSource();
+        private bool integrityCheckCanceled = false;
 
         public ReactiveCommand<Unit, Unit> Hangar { get; }
         public ReactiveCommand<Unit, Unit> Achievements { get; }
@@ -114,7 +115,6 @@
 
             await Downloader.IntegrityCheck(CurrentActionChanged, CurrentProgressChanged, cancellationToken);
 
-
             if (initialDownload)
             {
                 ProgressWindowButtonName = "OK";
@@ -135,33 +135,7 @@
 
         private async Task LaunchButtonClick()
         {
-            cancellationToken = new CancellationTokenSource();
-
-            ProgressWindowButtonName = "Cancel";
-
-            progressWindow = new ProgressWindow
-            {
-                DataContext = this
-            };
-
-            if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
-            {
-                progressWindow.ShowDialog(desktopLifetime.MainWindow);
-            }
-            else if (Application.Current.ApplicationLifetime is ISingleViewApplicationLifetime singleView)
-            {
-                progressWindow.ShowDialog((Window)singleView.MainView);
-            }
-
-            if (!primaryWindowViewModel.GameInstalled)
-            {
-                Task.Run(new Action(async () => await PrepareGameUpdates(true))).Wait();
-                return;
-            }
-
-            await Task.Factory.StartNew(() => PrepareGameUpdates(false).Wait());
-
-            progressWindow.Close();
+            integrityCheckCanceled = false;
 
             List<string> exeArguments = new List<string>()
             {
@@ -177,43 +151,57 @@
             {
                 int w = 0;
                 int h = 0;
+
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    Process p = new Process();
-                    p.StartInfo.UseShellExecute = false;
-                    p.StartInfo.RedirectStandardOutput = true;
-                    p.StartInfo.FileName = "wmic";
-                    p.StartInfo.Arguments = "desktopmonitor get screenheight, screenwidth";
-                    p.StartInfo.CreateNoWindow = true;
-                    p.Start();
-                    string output = p.StandardOutput.ReadToEnd();
-                    p.WaitForExit();
+                    try
+                    {
+                        Process p = new Process();
+                        p.StartInfo.UseShellExecute = false;
+                        p.StartInfo.RedirectStandardOutput = true;
+                        p.StartInfo.FileName = "wmic";
+                        p.StartInfo.Arguments = "desktopmonitor get screenheight, screenwidth";
+                        p.StartInfo.CreateNoWindow = true;
+                        p.Start();
+                        string output = p.StandardOutput.ReadToEnd();
+                        p.WaitForExit();
 
-                    var match = System.Text.RegularExpressions.Regex.Match(output, @".*?\n(\d+).*?(\d+)");
-                    w = int.Parse(match.Groups[1].Value);
-                    h = int.Parse(match.Groups[2].Value);
+                        var match = System.Text.RegularExpressions.Regex.Match(output, @".*?\n(\d+).*?(\d+)");
+                        w = int.Parse(match.Groups[1].Value);
+                        h = int.Parse(match.Groups[2].Value);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.WriteLog("Unable to get and set screen resolution WINDOWS. ERROR: " + ex.Message);
+                    }
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    // Use xrandr to get size of screen located at offset (0,0).
-                    Process p = new Process();
-                    p.StartInfo.UseShellExecute = false;
-                    p.StartInfo.RedirectStandardOutput = true;
-                    p.StartInfo.FileName = "xrandr";
-                    p.StartInfo.CreateNoWindow = true;
-                    p.Start();
-                    string output = p.StandardOutput.ReadToEnd();
-                    p.WaitForExit();
+                    try
+                    {
+                        Process p = new Process();
+                        p.StartInfo.UseShellExecute = false;
+                        p.StartInfo.RedirectStandardOutput = true;
+                        p.StartInfo.FileName = "xrandr";
+                        p.StartInfo.CreateNoWindow = true;
+                        p.Start();
+                        string output = p.StandardOutput.ReadToEnd();
+                        p.WaitForExit();
 
-                    if (output.Contains("'xrandr' not found"))
-                    {
-                        // Handle
+                        if (output.Contains("'xrandr' not found"))
+                        {
+                            // TODO: HANDLE
+                        }
+                        else
+                        {
+                            var match = System.Text.RegularExpressions.Regex.Match(output, @"(\d+)x(\d+)\+0\+0");
+                            w = int.Parse(match.Groups[1].Value);
+                            h = int.Parse(match.Groups[2].Value);
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        var match = System.Text.RegularExpressions.Regex.Match(output, @"(\d+)x(\d+)\+0\+0");
-                        w = int.Parse(match.Groups[1].Value);
-                        h = int.Parse(match.Groups[2].Value);
+                        Logger.WriteLog("Unable to get and set scree resolution LINUX. ERROR: " + ex.Message);
                     }
                 }
 
@@ -242,7 +230,7 @@
                 }
                 else
                 {
-                    var messageBoxCustomWindow = await MessageBoxManager.GetMessageBoxCustomWindow(new MessageBoxCustomParams
+                    await MessageBoxManager.GetMessageBoxCustomWindow(new MessageBoxCustomParams
                     {
                         Style = Style.UbuntuLinux,
                         ContentMessage = "Unable to generate AccSig and AccCode \n",
@@ -265,7 +253,27 @@
             Process[] processesNames = Process.GetProcessesByName("freelancer");
             if (processesNames.Length == 0)
             {
-                Process.Start($@"{Settings.Instance.LauncherData.AftermathInstall}\EXE\Freelancer.exe", string.Join(" ", exeArguments.ToArray()));
+                Logger.WriteLog("Starting integrity check");
+                await LaunchCheck();
+                Logger.WriteLog("Integrity check finished");
+
+                if (integrityCheckCanceled)
+                {
+                    return;
+                }
+
+                Logger.WriteLog("Starting freelancer");
+
+                try
+                {
+                    Process.Start($@"{Settings.Instance.LauncherData.AftermathInstall}\EXE\Freelancer.exe", string.Join(" ", exeArguments.ToArray()));
+                }
+                catch (Exception ex)
+                {
+                    Logger.WriteLog("Unable to start Freelancer. ERROR: " + ex.Message);
+                }
+
+                Logger.WriteLog("Freelancer started");
             }
             else
             {
@@ -280,29 +288,89 @@
                     ContentHeader = "Freelancer Already Running?",
                     Icon = Icon.Warning,
                     ShowInCenter = true,
+                    WindowStartupLocation = WindowStartupLocation.CenterScreen,
                     ButtonDefinitions = new[]
                     {
                         new ButtonDefinition { Name = stop },
-                        new ButtonDefinition { Name = cont },
+                        //new ButtonDefinition { Name = cont },
                         new ButtonDefinition { Name = terminate, Type = ButtonType.Colored }
                     }
                 }).Show();
 
                 if (result == cont)
                 {
-                    Process.Start($@"{Settings.Instance.LauncherData.AftermathInstall}\EXE\Freelancer.exe", string.Join(" ", exeArguments.ToArray()));
+                    await LaunchCheck();
+
+                    if (integrityCheckCanceled)
+                    {
+                        return;
+                    }
+
+                    try
+                    {
+                        Process.Start($@"{Settings.Instance.LauncherData.AftermathInstall}\EXE\Freelancer.exe", string.Join(" ", exeArguments.ToArray()));
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.WriteLog("Unable to start Freelancer. ERROR: " + ex.Message);
+                    }
                 }
                 else if (result == terminate)
                 {
                     processesNames[0].Kill();
 
-                    Process.Start($@"{Settings.Instance.LauncherData.AftermathInstall}\EXE\Freelancer.exe", string.Join(" ", exeArguments.ToArray()));
+                    await LaunchCheck();
+
+                    if (integrityCheckCanceled)
+                    {
+                        return;
+                    }
+
+                    try
+                    {
+                        Process.Start($@"{Settings.Instance.LauncherData.AftermathInstall}\EXE\Freelancer.exe", string.Join(" ", exeArguments.ToArray()));
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.WriteLog("Unable to start Freelancer. ERROR: " + ex.Message);
+                    }
                 }
                 else
                 {
                     return;
                 }
             }
+        }
+
+        private async Task LaunchCheck()
+        {
+            cancellationToken = new CancellationTokenSource();
+
+            ProgressWindowButtonName = "Cancel";
+
+            progressWindow = new ProgressWindow
+            {
+                DataContext = this
+            };
+
+            if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            {
+                progressWindow.ShowDialog(desktopLifetime.MainWindow);
+            }
+            else if (Application.Current.ApplicationLifetime is ISingleViewApplicationLifetime singleView)
+            {
+                progressWindow.ShowDialog((Window)singleView.MainView);
+            }
+
+            if (!primaryWindowViewModel.GameInstalled)
+            {
+                Task.Run(new Action(async () => await PrepareGameUpdates(true))).Wait();
+                return;
+            }
+
+            await Task.Factory.StartNew(() => PrepareGameUpdates(false).Wait());
+
+            progressWindow.Close();
         }
 
         private void AnnouncementsButtonClick()
@@ -382,10 +450,13 @@
 
         private void ProgressWindowButtonClick()
         {
+            integrityCheckCanceled = true;
+
             if (ProgressWindowButtonName == "Cancel")
             {
                 cancellationToken.Cancel();
             }
+
             progressWindow.Close();
         }
 

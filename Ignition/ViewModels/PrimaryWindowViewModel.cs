@@ -69,7 +69,7 @@
             UpdateGameVersion();
 
             // Load news
-            LoadNews();
+            Task.Run(async () => await LoadNews()).Wait();
         }
 
         /// <summary>
@@ -141,7 +141,7 @@
                 // Get JSON string from link
                 string jsonString = webClient.DownloadString(Settings.Instance.LauncherData.NewsLocation);
 
-                var blogs = await WebRequest.GetRequest("/api/blog?page=1&count=3");
+                var blogs = await WebRequest.GetRequest("/api/blog?page=1&count=4");
 
                 foreach (var item in blogs.Value)
                 {
