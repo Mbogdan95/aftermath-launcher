@@ -1,8 +1,10 @@
 ﻿namespace Ignition.Views
 {
+    using Avalonia.Animation;
     using Avalonia.Controls;
     using Avalonia.Markup.Xaml;
-    using System.Threading;
+    using Avalonia.Threading;
+    using System;
 
     public class LandingWindowView : UserControl
     {
@@ -10,14 +12,51 @@
         private Button previousItemButton;
         private Button nextItemButton;
 
-        private Timer timer;
+        private DispatcherTimer timer;
 
         public LandingWindowView()
         {
             InitializeComponent();
 
-            previousItemButton.Click += (s, e) => carousel.Previous();
-            nextItemButton.Click += (s, e) => carousel.Next();
+            previousItemButton.Click += (s, e) => PreviousCarouselItem();
+            nextItemButton.Click += (s, e) => NextCarouselItem(true);
+
+            carousel.PageTransition = new CrossFade(TimeSpan.FromSeconds(0.25));
+
+            timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(10);
+            timer.Tick += (s, e) => NextCarouselItem(false);
+            timer.Start();
+        }
+
+        private void NextCarouselItem(bool clickedByUser)
+        {
+            if (clickedByUser)
+            {
+                timer.Stop();
+                timer.Start();
+            }
+
+            if (carousel.SelectedIndex == carousel.ItemCount - 1)
+            {
+                carousel.SelectedIndex = 0;
+            }
+            else
+            {
+                carousel.Next();
+            }
+        }
+
+        private void PreviousCarouselItem()
+        {
+            if (carousel.SelectedIndex == 0)
+            {
+                carousel.SelectedIndex = carousel.ItemCount - 1;
+            }
+            else
+            {
+                carousel.Previous();
+            }
         }
 
         private void InitializeComponent()

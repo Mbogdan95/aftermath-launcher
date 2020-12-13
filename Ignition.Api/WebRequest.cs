@@ -96,17 +96,24 @@
 
                 var retObj = JsonConvert.DeserializeObject<JObject>(value);
 
-                var errors = retObj["errors"].Cast<List<string>>();
-
-                if (key != HttpStatusCode.Accepted && key == HttpStatusCode.OK && key != HttpStatusCode.Created)
+                if (retObj.ContainsKey("errors"))
                 {
-                    foreach (var error in errors)
+                    var errors = retObj["errors"].Cast<List<string>>();
+
+                    if (key != HttpStatusCode.Accepted && key == HttpStatusCode.OK && key != HttpStatusCode.Created)
                     {
-                        foreach (var item in error)
+                        foreach (var error in errors)
                         {
-                            Logger.WriteLog("Error occurred while executing HTTP request. Error: " + item);
+                            foreach (var item in error)
+                            {
+                                Logger.WriteLog("Error occurred while executing HTTP request. Error: " + item);
+                            }
                         }
                     }
+                }
+                else if (retObj.ContainsKey("Message"))
+                {
+                    return new KeyValuePair<HttpStatusCode, JToken>(key, retObj.ToObject<JToken>());
                 }
 
                 return new KeyValuePair<HttpStatusCode, JToken>(key, retObj["result"].ToObject<JToken>());
@@ -114,6 +121,8 @@
             catch (Exception ex)
             {
                 Logger.WriteLog("Error occurred while executing HTTP request. Error: " + ex.Message);
+                Logger.WriteLog(ex.StackTrace);
+
                 return default;
             }
         }

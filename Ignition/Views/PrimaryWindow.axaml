@@ -9,12 +9,11 @@
         xmlns:reactive="clr-namespace:Avalonia.ReactiveUI;assembly=Avalonia.ReactiveUI"
         x:Class="Ignition.Views.PrimaryWindow"
         Title="Ignition"
-        WindowStartupLocation="CenterScreen"
         SystemDecorations="BorderOnly"
 				Width="1000"
 				Height="700">
 
-  <Window.DataTemplates>
+  <!--<Window.DataTemplates>
     <DataTemplate DataType="{x:Type vm:PrimaryWindowViewModel}">
       <views:PrimaryWindow DataContext="{Binding}"/>
     </DataTemplate>
@@ -27,7 +26,10 @@
     <DataTemplate DataType="{x:Type vm:SettingsWindowViewModel}">
       <views:SettingsWindow DataContext="{Binding}"/>
     </DataTemplate>
-  </Window.DataTemplates>
+    <DataTemplate DataType="{x:Type vm:LoadingViewModel}">
+      <views:LoadingView DataContext="{Binding}"/>
+    </DataTemplate>
+  </Window.DataTemplates>-->
 
   <Window.Background>
     <ImageBrush Source="/Assets/bg2.png" Stretch="UniformToFill"/>

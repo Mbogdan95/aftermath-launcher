@@ -24,6 +24,7 @@ namespace Ignition.Api
         public static void DownloadFiles(Dictionary<string, string> files, CancellationTokenSource cts)
         {
             DownloadCount = files.Count;
+
             ParallelOptions options = new ParallelOptions
             {
                 MaxDegreeOfParallelism = 5,
@@ -99,6 +100,8 @@ namespace Ignition.Api
 
         public static async Task IntegrityCheck(Action<string> currentAction, Action<double, string, string> setProgress, CancellationTokenSource cts)
         {
+            // TODO: MAKE SURE THIS FINISHES CORECTLY. RETURN SOME FEEDBACK
+
             SetCurrentAction = currentAction;
             SetCurrentProgress = setProgress;
 

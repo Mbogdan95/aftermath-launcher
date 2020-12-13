@@ -20,21 +20,27 @@
     using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
+    using static Ignition.Api.NewsLoader;
 
     public class LandingWindowViewModel : BaseViewModel
     {
         private PrimaryWindowViewModel primaryWindowViewModel;
-        private Dictionary<uint, KeyValuePair<string, byte[]>> computedHashes { get; set; }
+
         private ProgressWindow progressWindow;
+
         private CancellationTokenSource cancellationToken = new CancellationTokenSource();
+
         private bool integrityCheckCanceled = false;
+
+        private System.Timers.Timer connectivityCheckTimer;
 
         public ReactiveCommand<Unit, Unit> Hangar { get; }
         public ReactiveCommand<Unit, Unit> Achievements { get; }
         public ReactiveCommand<Unit, Unit> Announcements { get; }
         public ReactiveCommand<Unit, Task> Launch { get; }
-        public ReactiveCommand<string, Unit> ModNewsItem { get; }
-        public ReactiveCommand<string, Unit> SiriusNewsItem { get; }
+        //public ReactiveCommand<string, Unit> ModNewsItem { get; }
+        //public ReactiveCommand<string, Unit> SiriusNewsItem { get; }
+        public ReactiveCommand<string, Unit> NewsItem { get; }
         public ReactiveCommand<Unit, Unit> ProgressWindowButton { get; }
 
         [Reactive]
@@ -69,8 +75,9 @@
             Achievements = ReactiveCommand.Create(AchievementsButtonClick);
             Announcements = ReactiveCommand.Create(AnnouncementsButtonClick);
             Launch = ReactiveCommand.Create(LaunchButtonClick);
-            ModNewsItem = ReactiveCommand.Create<string>(ModNewsClick);
-            SiriusNewsItem = ReactiveCommand.Create<string>(SiriusNewsClick);
+            //ModNewsItem = ReactiveCommand.Create<string>(ModNewsClick);
+            //SiriusNewsItem = ReactiveCommand.Create<string>(SiriusNewsClick);
+            NewsItem = ReactiveCommand.Create<string>(NewsClick);
             ProgressWindowButton = ReactiveCommand.Create(ProgressWindowButtonClick);
 
             SiriusNews = primaryWindowViewModel.SiriusNews;
@@ -80,6 +87,27 @@
             User = primaryWindowViewModel.LoggedUser;
 
             GameInstalled = primaryWindowViewModel.GameInstalled ? "Launch" : "Download";
+
+            connectivityCheckTimer = new System.Timers.Timer(10000);
+            connectivityCheckTimer.AutoReset = true;
+            connectivityCheckTimer.Elapsed += async (s, e) => await ConnectivityCheckTimerElapsed();
+            connectivityCheckTimer.Start();
+        }
+
+        private async Task ConnectivityCheckTimerElapsed()
+        {
+            var result = await Api.WebRequest.GetRequest("");
+
+            if (result.Key == 0)
+            {
+                cancellationToken.Cancel();
+
+                GameInstalled = "No connection";
+            }
+            else
+            {
+                GameInstalled = primaryWindowViewModel.GameInstalled ? "Launch" : "Download";
+            }
         }
 
         private async Task PrepareGameUpdates(bool initialDownload)
@@ -135,6 +163,11 @@
 
         private async Task LaunchButtonClick()
         {
+            if (GameInstalled == "No connection")
+            {
+                return;
+            }
+
             integrityCheckCanceled = false;
 
             List<string> exeArguments = new List<string>()
@@ -213,8 +246,8 @@
 
             if (!string.IsNullOrEmpty(primaryWindowViewModel.LoggedUser.AccCode) && !string.IsNullOrEmpty(primaryWindowViewModel.LoggedUser.AccSig))
             {
-                exeArguments.Add($"-AccCode-{primaryWindowViewModel.LoggedUser.AccCode}");
-                exeArguments.Add($"-AccSig-{primaryWindowViewModel.LoggedUser.AccSig}");
+                exeArguments.Add($"-AccCode={primaryWindowViewModel.LoggedUser.AccCode}");
+                exeArguments.Add($"-AccSig={primaryWindowViewModel.LoggedUser.AccSig}");
             }
             else
             {
@@ -225,8 +258,8 @@
                     primaryWindowViewModel.LoggedUser.AccCode = result.Value["user"]["FlhookUser"]["loginSignature"]?.ToString();
                     primaryWindowViewModel.LoggedUser.AccSig = result.Value["user"]["FlhookUser"]["loginCode"]?.ToString();
 
-                    exeArguments.Add($"-AccCode-{primaryWindowViewModel.LoggedUser.AccCode}");
-                    exeArguments.Add($"-AccSig-{primaryWindowViewModel.LoggedUser.AccSig}");
+                    exeArguments.Add($"-AccCode={primaryWindowViewModel.LoggedUser.AccCode}");
+                    exeArguments.Add($"-AccSig={primaryWindowViewModel.LoggedUser.AccSig}");
                 }
                 else
                 {
@@ -253,16 +286,12 @@
             Process[] processesNames = Process.GetProcessesByName("freelancer");
             if (processesNames.Length == 0)
             {
-                Logger.WriteLog("Starting integrity check");
                 await LaunchCheck();
-                Logger.WriteLog("Integrity check finished");
 
                 if (integrityCheckCanceled)
                 {
                     return;
                 }
-
-                Logger.WriteLog("Starting freelancer");
 
                 try
                 {
@@ -273,13 +302,12 @@
                     Logger.WriteLog("Unable to start Freelancer. ERROR: " + ex.Message);
                 }
 
-                Logger.WriteLog("Freelancer started");
             }
             else
             {
-                string stop = "Stop Launching Freelancer";
-                string cont = "Start Anyway";
-                string terminate = "Terminate & Start New";
+                const string stop = "Stop Launching Freelancer";
+                const string cont = "Start Anyway";
+                const string terminate = "Terminate & Start New";
 
                 var result = await MessageBoxManager.GetMessageBoxCustomWindow(new MessageBoxCustomParams
                 {
@@ -391,6 +419,7 @@
         private void ModNewsClick(string newsTitle)
         {
             NewsItem newsItemClicked = ModNews.Find(x => x.Title == newsTitle);
+            Debug.WriteLine(newsItemClicked.NewsUrl);
 
             try
             {
@@ -421,6 +450,41 @@
         private void SiriusNewsClick(string newsTitle)
         {
             NewsItem newsItemClicked = SiriusNews.Find(x => x.Title == newsTitle);
+
+            try
+            {
+                Process.Start(newsItemClicked.NewsUrl);
+            }
+            catch
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    newsItemClicked.NewsUrl = newsItemClicked.NewsUrl.Replace("&", "^&");
+                    Process.Start(new ProcessStartInfo("cmd", $"/c start {newsItemClicked.NewsUrl}") { CreateNoWindow = true });
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    Process.Start("xdg-open", newsItemClicked.NewsUrl);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    Process.Start("open", newsItemClicked.NewsUrl);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+
+        private void NewsClick(string newsTitle)
+        {
+            NewsItem newsItemClicked = SiriusNews.Find(x => x.Title == newsTitle);
+
+            if (newsItemClicked == null)
+            {
+                newsItemClicked = ModNews.Find(x => x.Title == newsTitle);
+            }
 
             try
             {

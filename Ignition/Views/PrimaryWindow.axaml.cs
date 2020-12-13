@@ -1,6 +1,8 @@
 ﻿namespace Ignition.Views
 {
+    using Avalonia;
     using Avalonia.Controls;
+    using Avalonia.Controls.ApplicationLifetimes;
     using Avalonia.Markup.Xaml;
     using Ignition.ViewModels;
 
@@ -10,10 +12,10 @@
         {
             InitializeComponent();
 
-            DataContext = new PrimaryWindowViewModel();
-            CanResize = false;
+            DataContext = new PrimaryWindowViewModel((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime);
 
-            //Program.Selector.EnableThemes(this);
+            CanResize = false;
+            WindowStartupLocation = WindowStartupLocation.CenterScreen;
         }
 
         private void InitializeComponent()

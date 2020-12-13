@@ -6,13 +6,14 @@ namespace Ignition.Api
 {
     public static class Logger
     {
+        // TODO: IMPLEMENT N LOG
         public static void WriteLog(string messaage)
         {
-            string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/Aftermath/Launcher/Launcher.log";
+            string path = Settings.Instance.LauncherData.SettingsLocation + "/Launcher.log";
 
             List<string> logContent = new List<string>()
             {
-                $"{DateTime.Now.ToString()}",
+                $"{DateTime.Now}",
                 messaage
             };
 

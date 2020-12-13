@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The name of the product -->
+<?define Name = "Ignition" ?>
+<!-- The Description of the product -->
+<?define Description = "Ignition is the launcher nedded to start Freelancer Aftermath" ?>
+<!-- The manufacturer, for setup package publisher and folder info -->
+<?define Manufacturer = "Aftermath" ?>
+<!-- The version number of this setup package-->
+<?define Version = "1.0.0" ?>
+<!-- UpgradeCode must be unique and not changed once the first version of the program is installed. -->
+<?define UpgradeCode = "{7de22bba-c905-4615-9cec-b792a8c67b34}" ?>
+<!-- The name of the Cabinet -->
+<?define CabName = "Ignition.cab" ?>
+
+
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:utilExt="http://schemas.microsoft.com/wix/UtilExtension" xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
+
+  <!--Variable for Ignition Directory-->
+  <?define Ignition_TargetDir="D:\Visual Studio Projects\aftermathlauncher\Ignition\"?>
+
+  <Product Id="*" Name="$(var.Name)" Manufacturer="$(var.Manufacturer)" UpgradeCode="$(var.UpgradeCode)" Version="$(var.Version)" Language="1033">
+
+    <!--Setup or Installer with properties-->
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" Manufacturer="$(var.Manufacturer)" />
+
+    <!--Application logo-->
+    <Icon Id="IgnitionLogo.ico" SourceFile="$(var.Ignition_TargetDir)\IgnitionLogo.ico" />
+
+    <!--Application logo for Control Panel-->
+    <Property Id="ARPPRODUCTICON" Value="IgnitionLogo.ico" />
+
+    <!--Embed Cabinet into single msi file-->
+    <Media Id="1" Cabinet="$(var.CabName)" EmbedCab="yes" />
+
+    <!-- Allow upgrades and prevent downgrades -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Ignition is already installed." />
+
+    <!--Main Feature for this Setup which can be found in Fragment Tag with ComponentGroupRef Id-->
+    <Feature Id="ProductFeature" Title="$(var.Name)" Level="1">
+      <!--Main application executable component-->
+      <ComponentGroupRef Id="ProductComponents" />
+      <!--Main application executable component-->
+      <ComponentGroupRef Id="ProductComponentsRuntime" />
+      <!--Main application shortcut for Program Menu-->
+      <ComponentRef Id="ApplicationShortcut" />
+      <!--Desktop shortcut-->
+      <ComponentGroupRef Id="ComponentGroupDesktopShortcut" />
+    </Feature>
+
+    <!-- Add CheckBox UI to your installer for running application on exit-->
+    <UI>
+      <!--<UIRef Id="WixUI_Minimal" />-->
+      <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchApplication">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
+    </UI>
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch $(var.Name)" />
+
+    <!--Include the custom action for running application on exit-->
+    <Property Id="WixShellExecTarget" Value="[#Ignition.exe]" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+    <CustomAction Id="LaunchApplication" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes" />
+
+    <!--Custom UI for installer-->
+    <Property Id="WIXUI_INSTALLDIR" Value="TARGETDIR" />
+    <UIRef Id="WixUI_InstallDir" />
+    <!--EndUser License aggrement-->
+    <WixVariable Id="WixUILicenseRtf" Overridable="yes" Value="Resources\eula.rtf" />
+    <!--Top Banner UI Logo-->
+    <WixVariable Id="WixUIBannerBmp" Overridable="yes" Value="Resources\TopBanner.jpg" />
+    <!--Verticle Banner UI Logo-->
+    <WixVariable Id="WixUIDialogBmp" Overridable="yes" Value="Resources\BackgroundLogo.jpg" />
+  </Product>
+
+  <!--Fragment with details of installation directory-->
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <!-- Create a folder inside program files with Company Name-->
+      <Directory Id="ROOTDIRECTORY" Name="$(var.Manufacturer)">
+        <!-- Create a folder inside Company Name folder with Product Name-->
+        <Directory Id="INSTALLFOLDER" Name="Launcher">
+          <Directory Id="RUNTIMES" Name="runtimes" />
+          <Directory Id="DesktopFolder" Name="DesktopFolder" />
+        </Directory>
+      </Directory>
+      <!--Create application folder in Program Menu-->
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="$(var.Name)" />
+      </Directory>
+    </Directory>
+  </Fragment>
+
+  <!--Main Feature Fragment with Sample application executable-->
+  <Fragment>
+    <!--ComponentGroup refering to install component in INSTALLFOLDER Directory-->
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <!--Main Component with Sample Application executable path-->
+      <Component Id="Ignition.exe" Guid="a85b7485-fa6a-4dee-a4eb-666cd2b27c8d">
+        <File Id="Ignition.exe" Name="Ignition.exe" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Ignition.exe" />
+        <!-- Remove all files from the INSTALLFOLDER on uninstall -->
+        <RemoveFile Id="ALLFILES" Name="*.*" On="both" />
+      </Component>
+      <Component Id="Avalonia.Animation.dll" Guid="aea49c4e-64eb-4b59-9052-e78189f077ec">
+        <File Id="Avalonia.Animation.dll" Name="Avalonia.Animation.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Animation.dll" />
+      </Component>
+      <Component Id="Avalonia.Base.dll" Guid="0d3b2667-5076-4389-9565-ccb9282482a1">
+        <File Id="Avalonia.Base.dll" Name="Avalonia.Base.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Base.dll" />
+      </Component>
+      <Component Id="Avalonia.Controls.dll" Guid="8686eb52-4a74-44de-9678-74e6d207a29a">
+        <File Id="Avalonia.Controls.dll" Name="Avalonia.Controls.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Controls.dll" />
+      </Component>
+      <Component Id="Avalonia.DesignerSupport.dll" Guid="00564606-096f-436f-b91d-993025181124">
+        <File Id="Avalonia.DesignerSupport.dll" Name="Avalonia.DesignerSupport.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.DesignerSupport.dll" />
+      </Component>
+      <Component Id="Avalonia.Desktop.dll" Guid="71e1bb10-8e59-4cf1-9af0-ebdac4df2090">
+        <File Id="Avalonia.Desktop.dll" Name="Avalonia.Desktop.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Desktop.dll" />
+      </Component>
+      <Component Id="Avalonia.DesktopRuntime.dll" Guid="e3395e32-c3d1-4b1d-ab86-98291ed0be8d">
+        <File Id="Avalonia.DesktopRuntime.dll" Name="Avalonia.DesktopRuntime.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.DesktopRuntime.dll" />
+      </Component>
+      <Component Id="Avalonia.Dialogs.dll" Guid="386ec259-2851-4b8f-b80a-6af63a34cd6a">
+        <File Id="Avalonia.Dialogs.dll" Name="Avalonia.Dialogs.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Dialogs.dll" />
+      </Component>
+      <Component Id="Avalonia.dll" Guid="b2d3f2a6-dbfd-45ff-a1f0-6b150262b66f">
+        <File Id="Avalonia.dll" Name="Avalonia.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.dll" />
+      </Component>
+      <Component Id="Avalonia.FreeDesktop.dll" Guid="d7052bcf-77e9-4137-a2b8-0ccbe20e3dc1">
+        <File Id="Avalonia.FreeDesktop.dll" Name="Avalonia.FreeDesktop.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.FreeDesktop.dll" />
+      </Component>
+      <Component Id="Avalonia.Input.dll" Guid="42447dbd-4041-4de9-892e-cb534191a497">
+        <File Id="Avalonia.Input.dll" Name="Avalonia.Input.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Input.dll" />
+      </Component>
+      <Component Id="Avalonia.Interactivity.dll" Guid="defdefcb-5c65-481a-9472-9d67ec54811b">
+        <File Id="Avalonia.Interactivity.dll" Name="Avalonia.Interactivity.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Interactivity.dll" />
+      </Component>
+      <Component Id="Avalonia.Layout.dll" Guid="e5b46903-8591-4dc6-a1ef-7bb90a33291a">
+        <File Id="Avalonia.Layout.dll" Name="Avalonia.Layout.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Layout.dll" />
+      </Component>
+      <Component Id="Avalonia.Markup.dll" Guid="8576c25e-d216-4331-aeb9-daff599c31bb">
+        <File Id="Avalonia.Markup.dll" Name="Avalonia.Markup.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Markup.dll" />
+      </Component>
+      <Component Id="Avalonia.Markup.Xaml.dll" Guid="f844f1a0-3675-4a5a-952b-f14ce6eeedc6">
+        <File Id="Avalonia.Markup.Xaml.dll" Name="Avalonia.Markup.Xaml.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Markup.Xaml.dll" />
+      </Component>
+      <Component Id="Avalonia.Native.dll" Guid="80745951-4d6a-4a85-af9f-a0e264aeff3f">
+        <File Id="Avalonia.Native.dll" Name="Avalonia.Native.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Native.dll" />
+      </Component>
+      <Component Id="Avalonia.OpenGL.dll" Guid="fe21a8cd-3fae-4ce2-9788-4079a109fc4f">
+        <File Id="Avalonia.OpenGL.dll" Name="Avalonia.OpenGL.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.OpenGL.dll" />
+      </Component>
+      <Component Id="Avalonia.ReactiveUI.dll" Guid="64766390-072a-4d2d-bf68-befb5692d80d">
+        <File Id="Avalonia.ReactiveUI.dll" Name="Avalonia.ReactiveUI.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.ReactiveUI.dll" />
+      </Component>
+      <Component Id="Avalonia.Remote.Protocol.dll" Guid="b4832ce6-2d1e-443c-baa0-516db9c1baa5">
+        <File Id="Avalonia.Remote.Protocol.dll" Name="Avalonia.Remote.Protocol.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Remote.Protocol.dll" />
+      </Component>
+      <Component Id="Avalonia.Skia.dll" Guid="524a7927-bcfe-4521-b83d-172b31792380">
+        <File Id="Avalonia.Skia.dll" Name="Avalonia.Skia.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Skia.dll" />
+      </Component>
+      <Component Id="Avalonia.Styling.dll" Guid="12c440c3-bfe0-4430-98c5-d5277a17bf0e">
+        <File Id="Avalonia.Styling.dll" Name="Avalonia.Styling.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Styling.dll" />
+      </Component>
+      <Component Id="Avalonia.Themes.Default.dll" Guid="15ac88be-fb08-4bed-9a47-29e6f598eb3c">
+        <File Id="Avalonia.Themes.Default.dll" Name="Avalonia.Themes.Default.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Themes.Default.dll" />
+      </Component>
+      <Component Id="Avalonia.Themes.Fluent.dll" Guid="62d22cdb-7da5-485f-84ca-355129a6a936">
+        <File Id="Avalonia.Themes.Fluent.dll" Name="Avalonia.Themes.Fluent.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Themes.Fluent.dll" />
+      </Component>
+      <Component Id="Avalonia.Visuals.dll" Guid="2573aef2-d1fd-47e7-8b6a-5d4206be00f6">
+        <File Id="Avalonia.Visuals.dll" Name="Avalonia.Visuals.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Visuals.dll" />
+      </Component>
+      <Component Id="Avalonia.Win32.dll" Guid="25758458-68ca-4e72-aac0-f3932a2d890b">
+        <File Id="Avalonia.Win32.dll" Name="Avalonia.Win32.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Win32.dll" />
+      </Component>
+      <Component Id="Avalonia.X11.dll" Guid="214b0e0c-58d7-4a38-90e3-b7535483282a">
+        <File Id="Avalonia.X11.dll" Name="Avalonia.X11.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.X11.dll" />
+      </Component>
+      <Component Id="Avalonia.Xaml.Interactivity.dll" Guid="21ebaafc-be1b-4ae6-974c-808829e787d5">
+        <File Id="Avalonia.Xaml.Interactivity.dll" Name="Avalonia.Xaml.Interactivity.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Xaml.Interactivity.dll" />
+      </Component>
+      <Component Id="Avalonia.Xaml.Interactions.dll" Guid="e35fc2d7-d185-4232-a687-e79621c3aaef">
+        <File Id="Avalonia.Xaml.Interactions.dll" Name="Avalonia.Xaml.Interactions.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Avalonia.Xaml.Interactions.dll" />
+      </Component>
+      <Component Id="DynamicData.dll" Guid="3d4cb999-3b07-4ea8-94a1-e818c9992ccd">
+        <File Id="DynamicData.dll" Name="DynamicData.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\DynamicData.dll" />
+      </Component>
+      <Component Id="HarfBuzzSharp.dll" Guid="c8c81d1d-603c-45f2-918f-33a6f6011e6f">
+        <File Id="HarfBuzzSharp.dll" Name="HarfBuzzSharp.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\HarfBuzzSharp.dll" />
+      </Component>
+      <Component Id="Ignition.Api.dll" Guid="82625c27-a5f4-40d1-a09a-1373c18dc3f2">
+        <File Id="Ignition.Api.dll" Name="Ignition.Api.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Ignition.Api.dll" />
+      </Component>
+      <Component Id="Ignition.deps.json" Guid="562671a0-215f-4dc7-8228-fe81ec0fe4d5">
+        <File Id="Ignition.deps.json" Name="Ignition.deps.json" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Ignition.deps.json" />
+      </Component>
+      <Component Id="Ignition.dll" Guid="3d63dec7-525c-4edf-bd80-197e6d2f7daf">
+        <File Id="Ignition.dll" Name="Ignition.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Ignition.dll" />
+      </Component>
+      <Component Id="Ignition.runtimeconfig.dev.json" Guid="021e8140-6f7a-4779-ba30-cec629a8795e">
+        <File Id="Ignition.runtimeconfig.dev.json" Name="Ignition.runtimeconfig.dev.json" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Ignition.runtimeconfig.dev.json" />
+      </Component>
+      <Component Id="Ignition.runtimeconfig.json" Guid="">
+        <File Id="Ignition.runtimeconfig.json" Name="Ignition.runtimeconfig.json" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Ignition.runtimeconfig.json" />
+      </Component>
+      <Component Id="JetBrains.Annotations.dll" Guid="">
+        <File Id="JetBrains.Annotations.dll" Name="JetBrains.Annotations.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\JetBrains.Annotations.dll" />
+      </Component>
+      <Component Id="MessageBox.Avalonia.dll" Guid="d7b63c06-6ea1-4131-9ff1-ddbd2a1d5edf">
+        <File Id="MessageBox.Avalonia.dll" Name="MessageBox.Avalonia.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\MessageBox.Avalonia.dll" />
+      </Component>
+      <Component Id="Microsoft.Win32.SystemEvents.dll" Guid="2126d16e-bc36-481a-9868-1c50ddc5793c">
+        <File Id="Microsoft.Win32.SystemEvents.dll" Name="Microsoft.Win32.SystemEvents.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Microsoft.Win32.SystemEvents.dll" />
+      </Component>
+      <Component Id="Microsoft.Windows.SDK.NET.dll" Guid="fbeb2174-1fa9-4c1f-aab3-497657b9f4fd">
+        <File Id="Microsoft.Windows.SDK.NET.dll" Name="Microsoft.Windows.SDK.NET.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Microsoft.Windows.SDK.NET.dll" />
+      </Component>
+      <Component Id="Newtonsoft.Json.dll" Guid="8552c485-939b-4b04-9093-a70cd54d1d4d">
+        <File Id="Newtonsoft.Json.dll" Name="Newtonsoft.Json.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Newtonsoft.Json.dll" />
+      </Component>
+      <Component Id="Projektanker.Icons.Avalonia.dll" Guid="b289b66b-4b68-4fcb-9e0e-fc66b619d8a7">
+        <File Id="Projektanker.Icons.Avalonia.dll" Name="Projektanker.Icons.Avalonia.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Projektanker.Icons.Avalonia.dll" />
+      </Component>
+      <Component Id="Projektanker.Icons.Avalonia.FontAwesome.dll" Guid="0ca3d8ef-5ec5-4744-bc60-16d65653de32">
+        <File Id="Projektanker.Icons.Avalonia.FontAwesome.dll" Name="Projektanker.Icons.Avalonia.FontAwesome.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Projektanker.Icons.Avalonia.FontAwesome.dll" />
+      </Component>
+      <Component Id="ReactiveUI.dll" Guid="14857721-e645-4118-8f3a-029826c5c8c9">
+        <File Id="ReactiveUI.dll" Name="ReactiveUI.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\ReactiveUI.dll" />
+      </Component>
+      <Component Id="ReactiveUI.Fody.Helpers.dll" Guid="52983aa0-fa73-4a66-ac5c-b8d6518d1e88">
+        <File Id="ReactiveUI.Fody.Helpers.dll" Name="ReactiveUI.Fody.Helpers.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\ReactiveUI.Fody.Helpers.dll" />
+      </Component>
+      <Component Id="SharpGen.Runtime.COM.dll" Guid="a4187fe0-db0b-49af-b5a0-62d0befb9bf6">
+        <File Id="SharpGen.Runtime.COM.dll" Name="SharpGen.Runtime.COM.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\SharpGen.Runtime.COM.dll" />
+      </Component>
+      <Component Id="SharpGen.Runtime.dll" Guid="67addacf-a8ba-4c6a-8048-2667bbaf8067">
+        <File Id="SharpGen.Runtime.dll" Name="SharpGen.Runtime.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\SharpGen.Runtime.dll" />
+      </Component>
+      <Component Id="SkiaSharp.dll" Guid="3148bc0d-669a-4c24-ba81-dec3756d8ba0">
+        <File Id="SkiaSharp.dll" Name="SkiaSharp.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\SkiaSharp.dll" />
+      </Component>
+      <Component Id="Splat.dll" Guid="e827ea67-b62f-43e4-bd34-1fba01b6ce08">
+        <File Id="Splat.dll" Name="Splat.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Splat.dll" />
+      </Component>
+      <Component Id="System.Drawing.Common.dll" Guid="40fda5ce-8fe9-4a5a-be3a-e1637cafe74e">
+        <File Id="System.Drawing.Common.dll" Name="System.Drawing.Common.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\System.Drawing.Common.dll" />
+      </Component>
+      <Component Id="System.Reactive.dll" Guid="548f8332-f848-463b-9fd9-a0ca2299882c">
+        <File Id="System.Reactive.dll" Name="System.Reactive.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\System.Reactive.dll" />
+      </Component>
+      <Component Id="System.Reactive.xml" Guid="317ecb55-4906-4b02-a97a-35d72cc19a99">
+        <File Id="System.Reactive.xml" Name="System.Reactive.xml" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\System.Reactive.xml" />
+      </Component>
+      <Component Id="Tmds.DBus.dll" Guid="62771b0c-6bc9-47d6-a0c6-d9ef5e73a1d0">
+        <File Id="Tmds.DBus.dll" Name="Tmds.DBus.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\Tmds.DBus.dll" />
+      </Component>
+      <Component Id="winrt.runtime.dll" Guid="d3133aaa-a746-468f-9784-46a6e7d3a419">
+        <File Id="winrt.runtime.dll" Name="winrt.runtime.dll" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\winrt.runtime.dll" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ProductComponentsRuntime">
+      <Component Id="libHarfBuzzSharp.so" Directory="dirF7256578C22C79D3DC9CD88231AD121F" Guid="{1FA13A4A-D791-4372-A36E-BAAC510B1479}">
+        <File Id="libHarfBuzzSharp.so" Name="libHarfBuzzSharp.so" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\linux-arm\native\libHarfBuzzSharp.so" />
+      </Component>
+      <Component Id="cmpBDCFD98C5C1AE1E324DDF2B848EB41A0" Directory="dirF7256578C22C79D3DC9CD88231AD121F" Guid="{6002F4C5-5B8A-41E8-969C-30A1263817D5}">
+        <File Id="fil990D251C5D7760C19CEF36E3D53AE422" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\linux-arm\native\libSkiaSharp.so" />
+      </Component>
+      <Component Id="cmpCEE9C7832F90E348003C98987A2E8BB1" Directory="dirEC52EDF677E361BDD6E3CC47DAC7399F" Guid="{904EAE67-D3D9-432B-A3EB-497DA628261B}">
+        <File Id="filD94C4596EAE10E499E4A76779ACE2D51" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\linux-arm64\native\libHarfBuzzSharp.so" />
+      </Component>
+      <Component Id="cmp3CE0CC1446E761CBBCFC2C5182183B8A" Directory="dirEC52EDF677E361BDD6E3CC47DAC7399F" Guid="{A00F8773-66B0-4FCF-8E5D-EBBE615DE503}">
+        <File Id="filFFD60FD62E0274FFDDC39BCA37736C7B" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\linux-arm64\native\libSkiaSharp.so" />
+      </Component>
+      <Component Id="cmp75F9C90E34D4BCF3D1444D27D9B26C78" Directory="dirB7F3DE544B366F918D203F8C01A49813" Guid="{0E2897E4-04BC-42EB-835E-BD063F2D7273}">
+        <File Id="fil99322FEC856685466E83EBFBE21504C8" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\linux-musl-x64\native\libHarfBuzzSharp.so" />
+      </Component>
+      <Component Id="cmp3C7CCA1E2B2C8F97826DFE63CDA6612A" Directory="dirB7F3DE544B366F918D203F8C01A49813" Guid="{7DD371E4-78C2-4155-A548-EC0FC1DA792F}">
+        <File Id="filC79E5A8ACB1BC56C424AC696654A92E8" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\linux-musl-x64\native\libSkiaSharp.so" />
+      </Component>
+      <Component Id="cmp7EA3EED3BDD5C8365F3724F62770DAB1" Directory="dirCA5208D36DA33EEFA716A639BFCB7E4D" Guid="{278132EF-A0F9-4D3B-B9EF-F669040B74FD}">
+        <File Id="fil7E6205B385A98EE306153704A5C56D02" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\linux-x64\native\libHarfBuzzSharp.so" />
+      </Component>
+      <Component Id="cmp3EC8200595AE63960D86EFE9081457F5" Directory="dirCA5208D36DA33EEFA716A639BFCB7E4D" Guid="{DB3D4290-6C2E-45DA-9E28-7CD19D518BF8}">
+        <File Id="filA626B1CB92D2F06607D17DD9CF9E411D" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\linux-x64\native\libSkiaSharp.so" />
+      </Component>
+      <Component Id="cmp9CFFBBBA22698B0FDCEFD7CF2C2DA515" Directory="dirA66DC7C58D1D0B5B758AFF615C40F0FD" Guid="{E4B5B47D-0F63-45D7-9B9D-89A716F966E9}">
+        <File Id="fil6CAB12724EB30D7055B0C4426AA3C634" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\osx\native\libAvaloniaNative.dylib" />
+      </Component>
+      <Component Id="cmp95EF36FC2FB170D34A06D31EE381A1C8" Directory="dirA66DC7C58D1D0B5B758AFF615C40F0FD" Guid="{A0E47AA8-1F81-49A8-A0E0-ED8FDFB178A3}">
+        <File Id="fil55E9906DA4F4CD685F4DD87F083CD622" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\osx\native\libHarfBuzzSharp.dylib" />
+      </Component>
+      <Component Id="cmpB96DF9A9C26559C98ABDC84B38DC362F" Directory="dirA66DC7C58D1D0B5B758AFF615C40F0FD" Guid="{7B4DE5EA-4ACE-48E4-9CD5-4DBC98CC1FDB}">
+        <File Id="filB7D8870098F09EF6ABE27EB3006CBB54" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\osx\native\libSkiaSharp.dylib" />
+      </Component>
+      <Component Id="cmpFDE4E202286ECE185F9A4AF3FFA3CFC9" Directory="dirBBC2DBC007A3C69C706A2350E0A01CD1" Guid="{E6F1787A-CC89-41DE-9217-EF03A23A423B}">
+        <File Id="fil7343DF3D65EC69C7A4ABD73808D75A69" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\unix\lib\netcoreapp2.0\System.Drawing.Common.dll" />
+      </Component>
+      <Component Id="cmpE3BAFCFD0DD2F88A4AFE145AF1A1F6F5" Directory="dirEED10DD88EE227F24E21927F5C7DEA0A" Guid="{06D25437-1903-4196-9650-3DDC091E4E7A}">
+        <File Id="fil802AC851145E3D8F251AB268B4B96A40" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\win\lib\netcoreapp2.0\Microsoft.Win32.SystemEvents.dll" />
+      </Component>
+      <Component Id="cmp61521F111E75A5161C72C8B629956BB5" Directory="dirEED10DD88EE227F24E21927F5C7DEA0A" Guid="{84D5714C-2343-4418-83D2-841D6F5727EF}">
+        <File Id="fil06108810E1268B39D73B07BF1C70EE31" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\win\lib\netcoreapp2.0\System.Drawing.Common.dll" />
+      </Component>
+      <Component Id="cmp5E606BB34D8AE210A74D57DC02D6099B" Directory="dirAC2A08C232E0FD7C0C8398338FFBB82C" Guid="{BF1E468F-CC2E-4170-8ECD-CA8C7CDFB5FF}">
+        <File Id="fil3F92919981CF6034D90A3466DB8A8F3B" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\win-arm64\native\av_libglesv2.dll" />
+      </Component>
+      <Component Id="cmp4ABAF234B3C4343790839A645DA4FD19" Directory="dirAC2A08C232E0FD7C0C8398338FFBB82C" Guid="{AC391684-8F32-4665-9F81-F2D3DFADD6E0}">
+        <File Id="fil533CCB809884E5E3CC218C7499392532" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\win-arm64\native\libHarfBuzzSharp.dll" />
+      </Component>
+      <Component Id="cmpAC6DC170BDE89BB761F785F90673CF02" Directory="dirAC2A08C232E0FD7C0C8398338FFBB82C" Guid="{8CF1BC74-DE2F-4E4E-90D8-BA30DBBE5BE8}">
+        <File Id="fil380E004160BAB6018C5FD7C1E388A78E" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\win-arm64\native\libSkiaSharp.dll" />
+      </Component>
+      <Component Id="cmpF48279A7D27F253C0621F076FBF019ED" Directory="dirE33824FF5373E8587B7BEDFA786CADC9" Guid="{BDC3A8F5-179C-41DE-A9A8-836138A17C46}">
+        <File Id="fil21EAA7E60162C940A1C24987E9C202E7" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\win-x64\native\libHarfBuzzSharp.dll" />
+      </Component>
+      <Component Id="cmp6D158E78025C3396CDEE3EDE7BA3C16B" Directory="dirE33824FF5373E8587B7BEDFA786CADC9" Guid="{318ED7CF-C51A-4BBE-B73C-0F74984B53E2}">
+        <File Id="fil2A6146318E6FA7751D96BF225C35B660" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\win-x64\native\libSkiaSharp.dll" />
+      </Component>
+      <Component Id="cmpAD5BAD68197360CC5879621564CA7DBA" Directory="dir72DE752EC337304B087E66689B7A0A07" Guid="{FEEA816B-5069-41BD-AA6C-53F03CFE0736}">
+        <File Id="fil1AC9AB58138E330F18C9552CEC4F38A5" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\win-x86\native\libHarfBuzzSharp.dll" />
+      </Component>
+      <Component Id="cmp6BBE66CAF21D40887B223F4FBB8913AD" Directory="dir72DE752EC337304B087E66689B7A0A07" Guid="{9C9A27E3-E680-4328-A2F0-79363A1998D7}">
+        <File Id="filCEB3C01F6FAC0C4850819E6861EED491" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\win-x86\native\libSkiaSharp.dll" />
+      </Component>
+      <Component Id="cmp27AA8478465B9857906A3E5C825B1B70" Directory="dir560CB40128BAAC7A2BF37D8AC3037E11" Guid="{77C32E6B-A9B7-4125-BAA4-1A739B20972F}">
+        <File Id="fil89B1409F80CDC58427822895A02607C5" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\win7-x64\native\av_libglesv2.dll" />
+      </Component>
+      <Component Id="cmp80F6D0BF0313084DAC7033D31D2AB2E6" Directory="dir18BCE78DE41CC61B1C2EAA0527875405" Guid="{0FFD460A-943D-435B-9061-A62861A7FF64}">
+        <File Id="fil5045EE216E2D2A322CE087E9730E0D97" KeyPath="yes" Source="$(var.Ignition_TargetDir)bin\Release\netcoreapp3.1\runtimes\win7-x86\native\av_libglesv2.dll" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="dirCB7D1810D69155D885AD9C434BEF5613">
+      <Directory Id="dir0D9927F79878174E47CA16536F8CE5D0" Name="lib" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="RUNTIMES">
+      <Directory Id="dir117FF912CBF6B6259B57F8FCBCECBF08" Name="osx" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="dirABDF4C2C38BDB923B235AC85B659C178">
+      <Directory Id="dir18BCE78DE41CC61B1C2EAA0527875405" Name="native" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="dir90E8A04BF23E851FC6091EED4FA4298D">
+      <Directory Id="dir34CCCB77A9BA75BED59E35A4EE05550A" Name="lib" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="dir9B0328C365C680190866E04C8A9F2AF7">
+      <Directory Id="dir560CB40128BAAC7A2BF37D8AC3037E11" Name="native" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="RUNTIMES">
+      <Directory Id="dir5E0BC1622A970465D65CDA9E805DEA6E" Name="win-x86" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="RUNTIMES">
+      <Directory Id="dir723A6FC73E1C0D9BEB69DB60DD9EC0BE" Name="linux-arm" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="dir5E0BC1622A970465D65CDA9E805DEA6E">
+      <Directory Id="dir72DE752EC337304B087E66689B7A0A07" Name="native" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="RUNTIMES">
+      <Directory Id="dir85555FA7D7979C4DB460413432102599" Name="win-arm64" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="RUNTIMES">
+      <Directory Id="dir90E8A04BF23E851FC6091EED4FA4298D" Name="unix" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="RUNTIMES">
+      <Directory Id="dir9B0328C365C680190866E04C8A9F2AF7" Name="win7-x64" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="dir117FF912CBF6B6259B57F8FCBCECBF08">
+      <Directory Id="dirA66DC7C58D1D0B5B758AFF615C40F0FD" Name="native" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="RUNTIMES">
+      <Directory Id="dirABDF4C2C38BDB923B235AC85B659C178" Name="win7-x86" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="dir85555FA7D7979C4DB460413432102599">
+      <Directory Id="dirAC2A08C232E0FD7C0C8398338FFBB82C" Name="native" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="RUNTIMES">
+      <Directory Id="dirB0447F95AB0F7785DD21A12CE525088C" Name="win-x64" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="dirD77D8B28984E957FA8E90EC8C1C86C81">
+      <Directory Id="dirB7F3DE544B366F918D203F8C01A49813" Name="native" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="dir34CCCB77A9BA75BED59E35A4EE05550A">
+      <Directory Id="dirBBC2DBC007A3C69C706A2350E0A01CD1" Name="netcoreapp2.0" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="dirF67682DC402B43599A6B33DC38E594A5">
+      <Directory Id="dirCA5208D36DA33EEFA716A639BFCB7E4D" Name="native" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="RUNTIMES">
+      <Directory Id="dirCB7D1810D69155D885AD9C434BEF5613" Name="win" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="RUNTIMES">
+      <Directory Id="dirD77D8B28984E957FA8E90EC8C1C86C81" Name="linux-musl-x64" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="dirB0447F95AB0F7785DD21A12CE525088C">
+      <Directory Id="dirE33824FF5373E8587B7BEDFA786CADC9" Name="native" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="RUNTIMES">
+      <Directory Id="dirE8A5C543619D43B4C70AADD8C5301DA8" Name="linux-arm64" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="dirE8A5C543619D43B4C70AADD8C5301DA8">
+      <Directory Id="dirEC52EDF677E361BDD6E3CC47DAC7399F" Name="native" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="dir0D9927F79878174E47CA16536F8CE5D0">
+      <Directory Id="dirEED10DD88EE227F24E21927F5C7DEA0A" Name="netcoreapp2.0" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="RUNTIMES">
+      <Directory Id="dirF67682DC402B43599A6B33DC38E594A5" Name="linux-x64" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="dir723A6FC73E1C0D9BEB69DB60DD9EC0BE">
+      <Directory Id="dirF7256578C22C79D3DC9CD88231AD121F" Name="native" />
+    </DirectoryRef>
+  </Fragment>
+  
+  <Fragment>
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <!--Create application shortcut in Program Menu-->
+      <Component Id="ApplicationShortcut" Guid="*">
+        <Shortcut Id="ApplicationStartMenuShortcut" Name="$(var.Name)" Description="$(var.Description)" Icon="IgnitionLogo.ico" Target="[#Ignition.exe]" WorkingDirectory="INSTALLFOLDER" />
+        <!--Remove application shortcut from Program Menu on uninstall-->
+        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
+        <!--Create application registry entry-->
+        <RegistryValue Root="HKCU" Key="Software\Microsoft\$(var.Manufacturer)\$(var.Name)" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <!--Desktop Shortcut-->
+    <ComponentGroup Id="ComponentGroupDesktopShortcut">
+      <Component Id="ComponentDesktopShortcut" Guid="*" Directory="DesktopFolder" >
+        <Shortcut Id="AppDesktopShortcut"
+                  Name="$(var.Name)"
+                  Description="$(var.Description)"
+                  Directory="DesktopFolder"
+                  Target="[#Ignition.exe]"
+                  WorkingDirectory="INSTALLFOLDER"/>
+        <!--Remove desktop shortcut on uninstall-->
+        <RemoveFolder Id="DesktopFolder" On="uninstall"/>
+        <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.Name)" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

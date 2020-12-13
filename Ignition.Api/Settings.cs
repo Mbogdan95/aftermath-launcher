@@ -11,12 +11,14 @@ namespace Ignition.Api
 
         public Data LauncherData { get; private set; }
 
+        private static string settingsLocation;
         private static string fileLocation;
 
         private Settings()
         {
-            fileLocation = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/Aftermath/Launcher";
-            Directory.CreateDirectory(fileLocation);
+            fileLocation = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+            settingsLocation = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/Aftermath/Launcher";
+            Directory.CreateDirectory(settingsLocation);
 
             LoadData();
         }
@@ -25,16 +27,16 @@ namespace Ignition.Api
         {
             var content = JsonConvert.SerializeObject(LauncherData);
 
-            File.WriteAllText(fileLocation + "/config.json", content);
+            File.WriteAllText(settingsLocation + "/config.json", content);
         }
 
         private void LoadData()
         {
-            if (File.Exists(fileLocation + "/config.json"))
+            if (File.Exists(settingsLocation + "/config.json"))
             {
                 try
                 {
-                    string content = File.ReadAllText(fileLocation + "/config.json");
+                    string content = File.ReadAllText(settingsLocation + "/config.json");
 
                     LauncherData = JsonConvert.DeserializeObject<Data>(content);
                 }
@@ -63,6 +65,7 @@ namespace Ignition.Api
             LauncherData = new Data()
             {
                 AftermathInstall = fileLocation + "/../Game",
+                SettingsLocation = settingsLocation,
                 PatchServer = "https://files.aftermath.space/Launcher/GameData",
                 NewsLocation = "https://files.aftermath.space/Launcher/news.json",
                 ApiLocation = "https://api.aftermath.space",
@@ -114,6 +117,8 @@ namespace Ignition.Api
         public class Data
         {
             public string AftermathInstall { get; set; }
+
+            public string SettingsLocation { get; set; }
 
             public string PatchServer { get; set; }
 
